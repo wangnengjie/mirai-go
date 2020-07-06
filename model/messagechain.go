@@ -17,26 +17,26 @@ func NewMsgChainBuilder() *MCBuilder {
 
 func (mb *MCBuilder) Quote(id MessageId, groupId GroupId, senderId QQId, targetId QQId, origin MsgChain) *MCBuilder {
 	mb.mc = append(mb.mc, &Quote{
-		Type:     QuoteMsg,
-		Id:       id,
-		GroupId:  groupId,
-		SenderId: senderId,
-		TargetId: targetId,
-		Origin:   origin,
+		MessageBase: MessageBase{QuoteMsg},
+		Id:          id,
+		GroupId:     groupId,
+		SenderId:    senderId,
+		TargetId:    targetId,
+		Origin:      origin,
 	})
 	return mb
 }
 
 func (mb *MCBuilder) At(targetId QQId) *MCBuilder {
 	mb.mc = append(mb.mc, &At{
-		Type:   AtMsg,
-		Target: targetId,
+		MessageBase: MessageBase{AtMsg},
+		Target:      targetId,
 	})
 	return mb
 }
 
 func (mb *MCBuilder) AtAll() *MCBuilder {
-	mb.mc = append(mb.mc, &AtAll{Type: AtAllMsg})
+	mb.mc = append(mb.mc, &AtAll{MessageBase: MessageBase{AtAllMsg}})
 	return mb
 }
 
@@ -47,17 +47,17 @@ func (mb *MCBuilder) AtAll() *MCBuilder {
 // is there anyone can tell me the Mapping relations of faceId???
 func (mb *MCBuilder) Face(faceId int, faceName string) *MCBuilder {
 	mb.mc = append(mb.mc, &Face{
-		Type:   FaceMsg,
-		FaceId: faceId,
-		Name:   faceName,
+		MessageBase: MessageBase{FaceMsg},
+		FaceId:      faceId,
+		Name:        faceName,
 	})
 	return mb
 }
 
 func (mb *MCBuilder) Plain(text string) *MCBuilder {
 	mb.mc = append(mb.mc, &Plain{
-		Type: PlainMsg,
-		Text: text,
+		MessageBase: MessageBase{PlainMsg},
+		Text:        text,
 	})
 	return mb
 }
@@ -97,32 +97,32 @@ func (mb *MCBuilder) FlashImage(t string, v string) *MCBuilder {
 
 func (mb *MCBuilder) Xml(xml string) *MCBuilder {
 	mb.mc = append(mb.mc, &Xml{
-		Type: XmlMsg,
-		Xml:  xml,
+		MessageBase: MessageBase{XmlMsg},
+		Xml:         xml,
 	})
 	return mb
 }
 
 func (mb *MCBuilder) Json(j string) *MCBuilder {
 	mb.mc = append(mb.mc, &Json{
-		Type: JsonMsg,
-		Json: j,
+		MessageBase: MessageBase{JsonMsg},
+		Json:        j,
 	})
 	return mb
 }
 
 func (mb *MCBuilder) App(content string) *MCBuilder {
 	mb.mc = append(mb.mc, &App{
-		Type:    AppMsg,
-		Content: content,
+		MessageBase: MessageBase{AppMsg},
+		Content:     content,
 	})
 	return mb
 }
 
 func (mb *MCBuilder) Poke(name PokeName) *MCBuilder {
 	mb.mc = append(mb.mc, &Poke{
-		Type: PokeMsg,
-		Name: name,
+		MessageBase: MessageBase{PokeMsg},
+		Name:        name,
 	})
 	return mb
 }
