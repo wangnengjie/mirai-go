@@ -5,9 +5,9 @@ import "github.com/wangnengjie/mirai-go/util/json"
 type MessageRecvType string
 
 const (
-	GROUPMESSAGE  MessageRecvType = "GroupMessage"
-	FRIENDMESSAGE MessageRecvType = "FriendMessage"
-	TEMPMESSAGE   MessageRecvType = "TempMessage"
+	GroupMessage  MessageRecvType = "GroupMessage"
+	FriendMessage MessageRecvType = "FriendMessage"
+	TempMessage   MessageRecvType = "TempMessage"
 )
 
 type MessageRecv interface {
