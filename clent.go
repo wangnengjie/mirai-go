@@ -76,7 +76,7 @@ func (c *Client) Listen(addr url.URL, debug bool) {
 		}(bot)
 	}
 	wg.Wait()
-	c.Log.Infoln("RestyClient exit.")
+	c.Log.Infoln("Client exit.")
 }
 
 func (c *Client) auth() (string, error) {
