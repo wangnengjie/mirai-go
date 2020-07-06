@@ -1,83 +1,87 @@
 package mirai
 
 import (
-	"github.com/go-resty/resty/v2"
 	"github.com/gorilla/websocket"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/sirupsen/logrus"
 	"github.com/wangnengjie/mirai-go/model"
 	"github.com/wangnengjie/mirai-go/util/json"
 	"net/url"
+	"sync"
 )
 
 type Bot struct {
 	id            model.QQId
 	pwd           string
 	Log           *logrus.Entry
-	c             *resty.Client
+	Client        *Client
 	session       string
-	msgHandlers   map[string]interface{}
-	eventHandlers map[string]interface{}
+	msgHandlers   map[model.MessageRecvType][]func(*Bot, model.MessageRecv)
+	eventHandlers map[model.EventType][]func(*Bot, model.Event)
 }
 
 func (b *Bot) start(addr url.URL) {
 	addr.Scheme = "ws"
 	addr.Path = "/message"
 	addr.RawQuery = "sessionKey=" + b.session
-	b.Log.Infoln(addr.String())
-	c, _, err := websocket.DefaultDialer.Dial(addr.String(), nil)
+	msgConn, _, err := websocket.DefaultDialer.Dial(addr.String(), nil)
 	if err != nil {
 		b.Log.Errorln(err)
 		return
 	}
-	defer c.Close()
-	b.Log.Infoln("Bot started successfully.")
-	for {
-		_, message, err := c.ReadMessage()
-		if err != nil {
-			b.Log.Errorln(err)
-			return
-		}
-		//b.Log.Debugln("[Receive Message]:", string(message))
-
-		var msgType model.MessageRecvBase
-		err = json.Unmarshal(message, &msgType)
-		if err != nil {
-			b.Log.Errorln(err)
-			continue
-		}
-		var mc model.MsgChain
-		var msg model.MessageRecv
-		buf := json.Get(message, "messageChain")
-		stream := jsoniter.NewStream(json.Json, nil, buf.Size())
-		buf.WriteTo(stream)
-		mc, err = model.Deserialize(stream.Buffer())
-		if err != nil {
-			b.Log.Errorln(err)
-			continue
-		}
-
-		switch msgType.Type {
-		case model.FRIENDMESSAGE:
-			var fm model.FriendMsg
-			fm.MsgChain = mc
-			err = json.Unmarshal(message, &fm)
-			msg = &fm
-		case model.GROUPMESSAGE:
-			var fm model.GroupMsg
-			fm.MsgChain = mc
-			err = json.Unmarshal(message, &fm)
-			msg = &fm
-		case model.TEMPMESSAGE:
-			var fm model.GroupMsg
-			fm.MsgChain = mc
-			err = json.Unmarshal(message, &fm)
-			msg = &fm
-		}
-		if err != nil {
-			b.Log.Errorln(err)
-			continue
-		}
-		b.Log.Debugln("[Marshal success]:", msg)
+	defer msgConn.Close()
+	addr.Path = "/event"
+	eventConn, _, err := websocket.DefaultDialer.Dial(addr.String(), nil)
+	if err != nil {
+		b.Log.Errorln(err)
+		return
 	}
+	defer eventConn.Close()
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		b.messageLoop(msgConn)
+		wg.Done()
+	}()
+	go func() {
+		b.eventLoop(eventConn)
+		wg.Done()
+	}()
+	b.Log.Infoln("Bot started successfully.")
+	wg.Wait()
+}
+
+func (b *Bot) OnMsg(t model.MessageRecvType, handler ...func(bot *Bot, msg model.MessageRecv)) {
+	b.msgHandlers[t] = append(b.msgHandlers[t], handler...)
+}
+
+func (b *Bot) OnEvent(t model.EventType, handler ...func(bot *Bot, msg model.Event)) {
+	b.eventHandlers[t] = append(b.eventHandlers[t], handler...)
+}
+
+type SendMsgResp struct {
+	DefaultResp
+	MessageId model.MessageId `json:"messageId"`
+}
+
+func (b *Bot) SendGroupMsg(group model.GroupId, mc model.MsgChain, quoteId *model.MessageId) (*SendMsgResp, error) {
+	body := map[string]interface{}{
+		"sessionKey":   b.session,
+		"group":        group,
+		"messageChain": mc,
+	}
+	if quoteId != nil {
+		body["quote"] = *quoteId
+	}
+	b.Log.Debugln(body)
+	resp, err := b.Client.RestyClient.R().SetBody(body).Post("/sendGroupMessage")
+	if err != nil {
+		return nil, err
+	}
+	var r SendMsgResp
+	err = json.Unmarshal(resp.Body(), &r)
+	if err != nil {
+		return nil, err
+	}
+	return &r, respErrCode(r.Code)
 }

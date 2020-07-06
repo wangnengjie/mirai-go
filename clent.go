@@ -2,7 +2,7 @@ package mirai
 
 import (
 	"errors"
-	nested "github.com/antonfisher/nested-logrus-formatter"
+	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/wangnengjie/mirai-go/model"
@@ -13,35 +13,34 @@ import (
 )
 
 type Client struct {
-	name    string
-	authKey string
-	addr    url.URL
-	c       *resty.Client
-	Log     *logrus.Entry
-	bots    map[model.QQId]*Bot
+	name        string
+	authKey     string
+	addr        url.URL
+	RestyClient *resty.Client
+	Log         *logrus.Entry
+	bots        map[model.QQId]*Bot
 
 	debug bool
 }
 
-type authResp struct {
+type AuthResp struct {
 	Code    int    `json:"code"`
 	Session string `json:"session"`
 }
 
-type defaultResp struct {
+type DefaultResp struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
 }
 
 func NewClient(name, authKey string) *Client {
 	log := logrus.New()
-	log.SetFormatter(&nested.Formatter{FieldsOrder: []string{"Client"}})
 	c := &Client{
-		name:    name,
-		authKey: authKey,
-		c:       nil,
-		Log:     log.WithFields(logrus.Fields{"Client": name}),
-		bots:    make(map[model.QQId]*Bot),
+		name:        name,
+		authKey:     authKey,
+		RestyClient: resty.New(),
+		Log:         log.WithFields(logrus.Fields{"Client": name}),
+		bots:        make(map[model.QQId]*Bot),
 	}
 	return c
 }
@@ -52,42 +51,40 @@ func (c *Client) Listen(addr url.URL, debug bool) {
 	if debug {
 		c.Log.Logger.SetLevel(logrus.DebugLevel)
 	}
-	c.c = resty.New().
-		SetHostURL(addr.String()).
-		SetHeader("Content-Type", "application/json")
+	c.RestyClient.SetHostURL(addr.String()).
+		SetHeader("Content-Type", "application/json;charset=utf8")
 
-	w := sync.WaitGroup{}
-	for _, v := range c.bots {
+	wg := sync.WaitGroup{}
+	for _, bot := range c.bots {
 		session, err := c.auth()
 		if err != nil {
 			c.Log.Fatalln(err)
 		}
-		v.session = session
-		err = c.verify(v, session)
+		bot.session = session
+		err = c.verify(bot, session)
 		if err != nil {
 			c.Log.Fatalln(err)
 		}
-		c.Log.Infoln(session)
-		w.Add(1)
+		wg.Add(1)
 		if c.debug {
-			v.Log.Logger.SetLevel(logrus.DebugLevel)
+			bot.Log.Logger.SetLevel(logrus.DebugLevel)
 		}
-		c.Log.Infof("Starting [Bot:%d] ...", v.id)
+		c.Log.Infof("Starting [Bot:%d] ...", bot.id)
 		go func(b *Bot) {
 			b.start(addr)
-			w.Done()
-		}(v)
+			wg.Done()
+		}(bot)
 	}
-	w.Wait()
-	c.Log.Infoln("Client exit.")
+	wg.Wait()
+	c.Log.Infoln("RestyClient exit.")
 }
 
 func (c *Client) auth() (string, error) {
-	resp, err := c.c.R().SetBody(map[string]interface{}{"authKey": c.authKey}).Post("/auth")
+	resp, err := c.RestyClient.R().SetBody(map[string]interface{}{"authKey": c.authKey}).Post("/auth")
 	if err != nil {
 		return "", err
 	}
-	var r authResp
+	var r AuthResp
 	err = json.Unmarshal(resp.Body(), &r)
 	if err != nil {
 		return "", err
@@ -99,11 +96,11 @@ func (c *Client) auth() (string, error) {
 }
 
 func (c *Client) verify(bot *Bot, session string) error {
-	resp, err := c.c.R().SetBody(map[string]interface{}{"sessionKey": session, "qq": bot.id}).Post("/verify")
+	resp, err := c.RestyClient.R().SetBody(map[string]interface{}{"sessionKey": session, "qq": bot.id}).Post("/verify")
 	if err != nil {
 		return err
 	}
-	var r defaultResp
+	var r DefaultResp
 	err = json.Unmarshal(resp.Body(), &r)
 	if err != nil {
 		return err
@@ -113,17 +110,24 @@ func (c *Client) verify(bot *Bot, session string) error {
 
 func (c *Client) AddBot(id model.QQId, pwd string) *Bot {
 	log := logrus.New()
-	log.SetFormatter(&nested.Formatter{FieldsOrder: []string{"Client"}})
 	c.bots[id] = &Bot{
 		id:            id,
 		pwd:           pwd,
 		Log:           log.WithFields(logrus.Fields{"Bot": id}),
-		c:             c.c,
+		Client:        c,
 		session:       "",
-		msgHandlers:   nil,
-		eventHandlers: nil,
+		msgHandlers:   make(map[model.MessageRecvType][]func(*Bot, model.MessageRecv)),
+		eventHandlers: make(map[model.EventType][]func(*Bot, model.Event)),
 	}
 	return c.bots[id]
+}
+
+func (c *Client) GetBot(id model.QQId) (*Bot, error) {
+	b, ok := c.bots[id]
+	if ok {
+		return b, nil
+	}
+	return nil, errors.New(fmt.Sprintf("Bot %d does not exist.", id))
 }
 
 func respErrCode(code int) error {
