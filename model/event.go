@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"github.com/wangnengjie/mirai-go/util/json"
 )
 
@@ -354,4 +355,126 @@ func (e *MemberJoinRequest) String() string {
 func (e *BotInvitedJoinGroupRequest) String() string {
 	s, _ := json.MarshalToString(e)
 	return s
+}
+
+func DeserializeEvent(rawjson []byte) (Event, error) {
+	var eventType EventBase
+	err := json.Unmarshal(rawjson, &eventType)
+	if err != nil {
+		return nil, err
+	}
+
+	var event Event
+	switch eventType.Type {
+	case BotOnlineEvent:
+		var e BotOnline
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case BotOfflineEventActive, BotOfflineEventForce, BotOfflineEventDropped:
+		var e BotOffline
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case BotReloginEvent:
+		var e BotRelogin
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case GroupRecallEvent:
+		var e GroupRecall
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case FriendRecallEvent:
+		var e FriendRecall
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case BotGroupPermissionChangeEvent:
+		var e BotGroupPermissionChange
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case BotMuteEvent:
+		var e BotMute
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case BotUnmuteEvent:
+		var e BotUnmute
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case BotJoinGroupEvent:
+		var e BotJoinGroup
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case BotLeaveEventActive, BotLeaveEventKick:
+		var e BotLeave
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case GroupNameChangeEvent:
+		var e GroupNameChange
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case GroupEntranceAnnouncementChangeEvent:
+		var e GroupEntranceAnnouncementChange
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case GroupMuteAllEvent:
+		var e GroupMuteAll
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case GroupAllowAnonymousChatEvent:
+		var e GroupAllowAnonymousChat
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case GroupAllowConfessTalkEvent:
+		var e GroupAllowConfessTalk
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case GroupAllowMemberInviteEvent:
+		var e GroupAllowMemberInvite
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case MemberJoinEvent:
+		var e MemberJoin
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case MemberLeaveEventKick, MemberLeaveEventQuit:
+		var e MemberLeave
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case MemberCardChangeEvent:
+		var e MemberCardChange
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case MemberSpecialTitleChangeEvent:
+		var e MemberSpecialTitleChange
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case MemberPermissionChangeEvent:
+		var e MemberPermissionChange
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case MemberMuteEvent:
+		var e MemberMute
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case MemberUnmuteEvent:
+		var e MemberUnmute
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case NewFriendRequestEvent:
+		var e NewFriendRequest
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case MemberJoinRequestEvent:
+		var e MemberJoinRequest
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	case BotInvitedJoinGroupRequestEvent:
+		var e BotInvitedJoinGroupRequest
+		err = json.Unmarshal(rawjson, e)
+		event = &e
+	default:
+		err = errors.New("unknown event receive type")
+	}
+	if err != nil {
+		return nil, err
+	}
+	return event, nil
 }

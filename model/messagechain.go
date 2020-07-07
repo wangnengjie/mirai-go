@@ -15,17 +15,17 @@ func NewMsgChainBuilder() *MCBuilder {
 	return &MCBuilder{}
 }
 
-func (mb *MCBuilder) Quote(id MessageId, groupId GroupId, senderId QQId, targetId QQId, origin MsgChain) *MCBuilder {
-	mb.mc = append(mb.mc, &Quote{
-		MessageBase: MessageBase{QuoteMsg},
-		Id:          id,
-		GroupId:     groupId,
-		SenderId:    senderId,
-		TargetId:    targetId,
-		Origin:      origin,
-	})
-	return mb
-}
+//func (mb *MCBuilder) Quote(id MessageId, groupId GroupId, senderId QQId, targetId QQId, origin MsgChain) *MCBuilder {
+//	mb.mc = append(mb.mc, &Quote{
+//		MessageBase: MessageBase{QuoteMsg},
+//		Id:          id,
+//		GroupId:     groupId,
+//		SenderId:    senderId,
+//		TargetId:    targetId,
+//		Origin:      origin,
+//	})
+//	return mb
+//}
 
 func (mb *MCBuilder) At(targetId QQId) *MCBuilder {
 	mb.mc = append(mb.mc, &At{
@@ -131,7 +131,7 @@ func (mb *MCBuilder) Done() MsgChain {
 	return mb.mc
 }
 
-func Deserialize(rawjson []byte) (MsgChain, error) {
+func DeserializeMessageChain(rawjson []byte) (MsgChain, error) {
 	var typeList []MessageBase
 	err := json.Unmarshal(rawjson, &typeList)
 	mc := make(MsgChain, 0, len(typeList))
@@ -166,7 +166,7 @@ func Deserialize(rawjson []byte) (MsgChain, error) {
 			b := json.Get(rawjson, i, "origin")
 			stream := jsoniter.NewStream(json.Json, nil, b.Size())
 			b.WriteTo(stream)
-			subMc, err := Deserialize(stream.Buffer())
+			subMc, err := DeserializeMessageChain(stream.Buffer())
 			if err != nil {
 				return mc, err
 			}

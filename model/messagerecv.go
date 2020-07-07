@@ -1,6 +1,10 @@
 package model
 
-import "github.com/wangnengjie/mirai-go/util/json"
+import (
+	"errors"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/wangnengjie/mirai-go/util/json"
+)
 
 type MessageRecvType string
 
@@ -59,4 +63,46 @@ func (m *GroupMsg) String() string {
 func (m *TempMsg) String() string {
 	s, _ := json.MarshalToString(m)
 	return s
+}
+
+func DeserializeMessageRecv(rawjson []byte) (MessageRecv, error) {
+	var msgType MessageRecvBase
+	err := json.Unmarshal(rawjson, &msgType)
+	if err != nil {
+		return nil, err
+	}
+
+	var mc MsgChain
+	var msg MessageRecv
+	buf := json.Get(rawjson, "messageChain")
+	stream := jsoniter.NewStream(json.Json, nil, buf.Size())
+	buf.WriteTo(stream)
+	mc, err = DeserializeMessageChain(stream.Buffer())
+	if err != nil {
+		return nil, err
+	}
+
+	switch msgType.Type {
+	case FriendMessage:
+		var fm FriendMsg
+		fm.MsgChain = mc
+		err = json.Unmarshal(rawjson, &fm)
+		msg = &fm
+	case GroupMessage:
+		var fm GroupMsg
+		fm.MsgChain = mc
+		err = json.Unmarshal(rawjson, &fm)
+		msg = &fm
+	case TempMessage:
+		var fm GroupMsg
+		fm.MsgChain = mc
+		err = json.Unmarshal(rawjson, &fm)
+		msg = &fm
+	default:
+		err = errors.New("unknown message receive type")
+	}
+	if err != nil {
+		return nil, err
+	}
+	return msg, nil
 }
