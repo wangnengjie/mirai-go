@@ -5,7 +5,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/wangnengjie/mirai-go/model"
 	"github.com/wangnengjie/mirai-go/util/json"
-	"net/url"
 	"sync"
 )
 
@@ -19,7 +18,8 @@ type Bot struct {
 	eventHandlers map[model.EventType][]func(*Bot, model.Event)
 }
 
-func (b *Bot) start(addr url.URL) {
+func (b *Bot) start() {
+	addr := b.Client.addr
 	addr.Scheme = "ws"
 	addr.Path = "/message"
 	addr.RawQuery = "sessionKey=" + b.session

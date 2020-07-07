@@ -33,11 +33,12 @@ type DefaultResp struct {
 	Msg  string `json:"msg"`
 }
 
-func NewClient(name, authKey string) *Client {
+func NewClient(name string, addr url.URL, authKey string) *Client {
 	log := logrus.New()
 	c := &Client{
 		name:        name,
 		authKey:     authKey,
+		addr:        addr,
 		RestyClient: resty.New(),
 		Log:         log.WithFields(logrus.Fields{"Client": name}),
 		bots:        make(map[model.QQId]*Bot),
@@ -45,13 +46,12 @@ func NewClient(name, authKey string) *Client {
 	return c
 }
 
-func (c *Client) Listen(addr url.URL, debug bool) {
-	c.addr = addr
+func (c *Client) Listen(debug bool) {
 	c.debug = debug
 	if debug {
 		c.Log.Logger.SetLevel(logrus.DebugLevel)
 	}
-	c.RestyClient.SetHostURL(addr.String()).
+	c.RestyClient.SetHostURL(c.addr.String()).
 		SetHeader("Content-Type", "application/json;charset=utf8")
 
 	wg := sync.WaitGroup{}
@@ -71,7 +71,7 @@ func (c *Client) Listen(addr url.URL, debug bool) {
 		}
 		c.Log.Infof("Starting [Bot:%d] ...", bot.id)
 		go func(b *Bot) {
-			b.start(addr)
+			b.start()
 			wg.Done()
 		}(bot)
 	}
