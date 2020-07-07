@@ -43,6 +43,8 @@ func NewClient(name string, addr url.URL, authKey string) *Client {
 		Log:         log.WithFields(logrus.Fields{"Client": name}),
 		bots:        make(map[model.QQId]*Bot),
 	}
+	c.RestyClient.SetHostURL(c.addr.String()).
+		SetHeader("Content-Type", "application/json;charset=utf8")
 	return c
 }
 
@@ -51,8 +53,6 @@ func (c *Client) Listen(debug bool) {
 	if debug {
 		c.Log.Logger.SetLevel(logrus.DebugLevel)
 	}
-	c.RestyClient.SetHostURL(c.addr.String()).
-		SetHeader("Content-Type", "application/json;charset=utf8")
 
 	wg := sync.WaitGroup{}
 	for _, bot := range c.bots {
@@ -108,11 +108,10 @@ func (c *Client) verify(bot *Bot, session string) error {
 	return respErrCode(r.Code)
 }
 
-func (c *Client) AddBot(id model.QQId, pwd string) *Bot {
+func (c *Client) AddBot(id model.QQId) *Bot {
 	log := logrus.New()
 	c.bots[id] = &Bot{
 		id:            id,
-		pwd:           pwd,
 		Log:           log.WithFields(logrus.Fields{"Bot": id}),
 		Client:        c,
 		session:       "",

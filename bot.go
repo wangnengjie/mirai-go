@@ -10,7 +10,6 @@ import (
 
 type Bot struct {
 	id            model.QQId
-	pwd           string
 	Log           *logrus.Entry
 	Client        *Client
 	session       string
@@ -64,14 +63,14 @@ type SendMsgResp struct {
 	MessageId model.MessageId `json:"messageId"`
 }
 
-func (b *Bot) SendGroupMsg(group model.GroupId, mc model.MsgChain, quoteId *model.MessageId) (*SendMsgResp, error) {
+func (b *Bot) SendGroupMsg(group model.GroupId, mc model.MsgChain, quoteId model.MessageId) (*SendMsgResp, error) {
 	body := map[string]interface{}{
 		"sessionKey":   b.session,
 		"group":        group,
 		"messageChain": mc,
 	}
-	if quoteId != nil {
-		body["quote"] = *quoteId
+	if quoteId != 0 {
+		body["quote"] = quoteId
 	}
 	b.Log.Debugln(body)
 	resp, err := b.Client.RestyClient.R().SetBody(body).Post("/sendGroupMessage")
@@ -85,3 +84,5 @@ func (b *Bot) SendGroupMsg(group model.GroupId, mc model.MsgChain, quoteId *mode
 	}
 	return &r, respErrCode(r.Code)
 }
+
+
