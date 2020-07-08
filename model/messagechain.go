@@ -1,7 +1,6 @@
 package model
 
 import (
-	jsoniter "github.com/json-iterator/go"
 	"github.com/wangnengjie/mirai-go/util/json"
 )
 
@@ -163,10 +162,7 @@ func DeserializeMessageChain(rawjson []byte) (MsgChain, error) {
 		case PokeMsg:
 			mc = append(mc, &Poke{})
 		case QuoteMsg:
-			b := json.Get(rawjson, i, "origin")
-			stream := jsoniter.NewStream(json.Json, nil, b.Size())
-			b.WriteTo(stream)
-			subMc, err := DeserializeMessageChain(stream.Buffer())
+			subMc, err := DeserializeMessageChain([]byte(json.Get(rawjson, i, "origin").ToString()))
 			if err != nil {
 				return mc, err
 			}

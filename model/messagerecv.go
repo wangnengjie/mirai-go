@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/wangnengjie/mirai-go/util/json"
 )
 
@@ -74,10 +73,7 @@ func DeserializeMessageRecv(rawjson []byte) (MessageRecv, error) {
 
 	var mc MsgChain
 	var msg MessageRecv
-	buf := json.Get(rawjson, "messageChain")
-	stream := jsoniter.NewStream(json.Json, nil, buf.Size())
-	buf.WriteTo(stream)
-	mc, err = DeserializeMessageChain(stream.Buffer())
+	mc, err = DeserializeMessageChain([]byte(json.Get(rawjson, "messageChain").ToString()))
 	if err != nil {
 		return nil, err
 	}
