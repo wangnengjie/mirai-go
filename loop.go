@@ -16,6 +16,7 @@ func (b *Bot) messageLoop(c *websocket.Conn) {
 			msg, err := model.DeserializeMessageRecv(msgByte)
 			if err != nil {
 				b.Log.Errorln(err)
+				return
 			}
 			b.Log.Debugln(msg)
 			handlers, ok := b.msgHandlers[msg.GetType()]
@@ -40,7 +41,9 @@ func (b *Bot) eventLoop(c *websocket.Conn) {
 			event, err := model.DeserializeEvent(eventByte)
 			if err != nil {
 				b.Log.Errorln(err)
+				return
 			}
+			b.Log.Debugln(event)
 			handlers, ok := b.eventHandlers[event.GetType()]
 			if !ok || len(handlers) == 0 {
 				return
