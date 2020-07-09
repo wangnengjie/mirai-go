@@ -4,7 +4,7 @@ import (
 	"github.com/wangnengjie/mirai-go/util/json"
 )
 
-type MsgChain []Message
+type MsgChain []Msg
 
 type MCBuilder struct {
 	mc MsgChain
@@ -14,9 +14,9 @@ func NewMsgChainBuilder() *MCBuilder {
 	return &MCBuilder{}
 }
 
-//func (mb *MCBuilder) Quote(id MessageId, groupId GroupId, senderId QQId, targetId QQId, origin MsgChain) *MCBuilder {
+//func (mb *MCBuilder) Quote(id MsgId, groupId GroupId, senderId QQId, targetId QQId, origin MsgChain) *MCBuilder {
 //	mb.mc = append(mb.mc, &Quote{
-//		MessageBase: MessageBase{QuoteMsg},
+//		MsgBase: MsgBase{QuoteMsg},
 //		Id:          id,
 //		GroupId:     groupId,
 //		SenderId:    senderId,
@@ -28,14 +28,14 @@ func NewMsgChainBuilder() *MCBuilder {
 
 func (mb *MCBuilder) At(targetId QQId) *MCBuilder {
 	mb.mc = append(mb.mc, &At{
-		MessageBase: MessageBase{AtMsg},
-		Target:      targetId,
+		MsgBase: MsgBase{AtMsg},
+		Target:  targetId,
 	})
 	return mb
 }
 
 func (mb *MCBuilder) AtAll() *MCBuilder {
-	mb.mc = append(mb.mc, &AtAll{MessageBase: MessageBase{AtAllMsg}})
+	mb.mc = append(mb.mc, &AtAll{MsgBase: MsgBase{AtAllMsg}})
 	return mb
 }
 
@@ -46,17 +46,17 @@ func (mb *MCBuilder) AtAll() *MCBuilder {
 // is there anyone can tell me the Mapping relations of faceId???
 func (mb *MCBuilder) Face(faceId int, faceName string) *MCBuilder {
 	mb.mc = append(mb.mc, &Face{
-		MessageBase: MessageBase{FaceMsg},
-		FaceId:      faceId,
-		Name:        faceName,
+		MsgBase: MsgBase{FaceMsg},
+		FaceId:  faceId,
+		Name:    faceName,
 	})
 	return mb
 }
 
 func (mb *MCBuilder) Plain(text string) *MCBuilder {
 	mb.mc = append(mb.mc, &Plain{
-		MessageBase: MessageBase{PlainMsg},
-		Text:        text,
+		MsgBase: MsgBase{PlainMsg},
+		Text:    text,
 	})
 	return mb
 }
@@ -96,32 +96,32 @@ func (mb *MCBuilder) FlashImage(t string, v string) *MCBuilder {
 
 func (mb *MCBuilder) Xml(xml string) *MCBuilder {
 	mb.mc = append(mb.mc, &Xml{
-		MessageBase: MessageBase{XmlMsg},
-		Xml:         xml,
+		MsgBase: MsgBase{XmlMsg},
+		Xml:     xml,
 	})
 	return mb
 }
 
 func (mb *MCBuilder) Json(j string) *MCBuilder {
 	mb.mc = append(mb.mc, &Json{
-		MessageBase: MessageBase{JsonMsg},
-		Json:        j,
+		MsgBase: MsgBase{JsonMsg},
+		Json:    j,
 	})
 	return mb
 }
 
 func (mb *MCBuilder) App(content string) *MCBuilder {
 	mb.mc = append(mb.mc, &App{
-		MessageBase: MessageBase{AppMsg},
-		Content:     content,
+		MsgBase: MsgBase{AppMsg},
+		Content: content,
 	})
 	return mb
 }
 
 func (mb *MCBuilder) Poke(name PokeName) *MCBuilder {
 	mb.mc = append(mb.mc, &Poke{
-		MessageBase: MessageBase{PokeMsg},
-		Name:        name,
+		MsgBase: MsgBase{PokeMsg},
+		Name:    name,
 	})
 	return mb
 }
@@ -130,8 +130,8 @@ func (mb *MCBuilder) Done() MsgChain {
 	return mb.mc
 }
 
-func DeserializeMessageChain(rawjson []byte) (MsgChain, error) {
-	var typeList []MessageBase
+func DeserializeMsgChain(rawjson []byte) (MsgChain, error) {
+	var typeList []MsgBase
 	err := json.Unmarshal(rawjson, &typeList)
 	mc := make(MsgChain, 0, len(typeList))
 	if err != nil {
@@ -162,13 +162,13 @@ func DeserializeMessageChain(rawjson []byte) (MsgChain, error) {
 		case PokeMsg:
 			mc = append(mc, &Poke{})
 		case QuoteMsg:
-			subMc, err := DeserializeMessageChain([]byte(json.Get(rawjson, i, "origin").ToString()))
+			subMc, err := DeserializeMsgChain([]byte(json.Get(rawjson, i, "origin").ToString()))
 			if err != nil {
 				return mc, err
 			}
 			mc = append(mc, &Quote{Origin: subMc})
 		case UnknownMsg:
-			mc = append(mc, &MessageBase{})
+			mc = append(mc, &MsgBase{})
 		}
 	}
 	err = json.Unmarshal(rawjson, &mc)

@@ -4,85 +4,52 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"github.com/wangnengjie/mirai-go/model"
-	"github.com/wangnengjie/mirai-go/util/json"
 	"sync"
 )
 
 type Bot struct {
-	id            model.QQId
-	Log           *logrus.Entry
-	Client        *Client
-	session       string
-	msgHandlers   map[model.MessageRecvType][]func(*Bot, model.MessageRecv)
-	eventHandlers map[model.EventType][]func(*Bot, model.Event)
+	Mu              sync.RWMutex
+	id              model.QQId
+	Log             *logrus.Entry
+	Client          *Client
+	sessionKey      string
+	enableWebsocket bool
+	msgCh           chan model.MsgRecv
+	msgHandlers     map[model.MsgRecvType][]func(*Bot, model.MsgRecv)
+	Data            map[string]interface{} // 线程不安全，你可以在里面放置任何东西
 }
 
 func (b *Bot) start() {
-	addr := b.Client.addr
-	addr.Scheme = "ws"
-	addr.Path = "/message"
-	addr.RawQuery = "sessionKey=" + b.session
-	msgConn, _, err := websocket.DefaultDialer.Dial(addr.String(), nil)
+	err := b.SetConfig(0, b.enableWebsocket)
 	if err != nil {
-		b.Log.Errorln(err)
+		b.Log.Errorln("Fail to set websocket config")
 		return
 	}
-	defer msgConn.Close()
-	addr.Path = "/event"
-	eventConn, _, err := websocket.DefaultDialer.Dial(addr.String(), nil)
-	if err != nil {
-		b.Log.Errorln(err)
-		return
+	var c *websocket.Conn = nil
+	if b.enableWebsocket {
+		addr := b.Client.addr
+		addr.Scheme = "ws"
+		addr.Path = "/all"
+		addr.RawQuery = "sessionKey=" + b.sessionKey
+		c, _, err = websocket.DefaultDialer.Dial(addr.String(), nil)
+		if err != nil {
+			b.Log.Errorln(err)
+			return
+		}
+		defer c.Close()
 	}
-	defer eventConn.Close()
-
-	wg := sync.WaitGroup{}
-	wg.Add(2)
-	go func() {
-		b.messageLoop(msgConn)
-		wg.Done()
-	}()
-	go func() {
-		b.eventLoop(eventConn)
-		wg.Done()
-	}()
 	b.Log.Infoln("Bot started successfully.")
-	wg.Wait()
-}
-
-func (b *Bot) OnMsg(t model.MessageRecvType, handler ...func(bot *Bot, msg model.MessageRecv)) {
-	b.msgHandlers[t] = append(b.msgHandlers[t], handler...)
-}
-
-func (b *Bot) OnEvent(t model.EventType, handler ...func(bot *Bot, msg model.Event)) {
-	b.eventHandlers[t] = append(b.eventHandlers[t], handler...)
-}
-
-type SendMsgResp struct {
-	DefaultResp
-	MessageId model.MessageId `json:"messageId"`
-}
-
-func (b *Bot) SendGroupMsg(group model.GroupId, mc model.MsgChain, quoteId model.MessageId) (*SendMsgResp, error) {
-	body := map[string]interface{}{
-		"sessionKey":   b.session,
-		"group":        group,
-		"messageChain": mc,
+	go b.msgLoop(c)
+	for msg := range b.msgCh {
+		handlers, ok := b.msgHandlers[msg.GetType()]
+		if ok && len(handlers) > 0 {
+			for _, handler := range handlers {
+				handler(b, msg) // 当前handlers同步执行，后续可能改成goroutin
+			}
+		}
 	}
-	if quoteId != 0 {
-		body["quote"] = quoteId
-	}
-	b.Log.Debugln(body)
-	resp, err := b.Client.RestyClient.R().SetBody(body).Post("/sendGroupMessage")
-	if err != nil {
-		return nil, err
-	}
-	var r SendMsgResp
-	err = json.Unmarshal(resp.Body(), &r)
-	if err != nil {
-		return nil, err
-	}
-	return &r, respErrCode(r.Code)
 }
 
-
+func (b *Bot) On(t model.MsgRecvType, handlers ...func(bot *Bot, msg model.MsgRecv)) {
+	b.msgHandlers[t] = append(b.msgHandlers[t], handlers...)
+}

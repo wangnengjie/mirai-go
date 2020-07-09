@@ -5,47 +5,47 @@ import (
 	"github.com/wangnengjie/mirai-go/util/json"
 )
 
-type MessageRecvType string
+type MsgRecvType string
 
 const (
-	GroupMessage  MessageRecvType = "GroupMessage"
-	FriendMessage MessageRecvType = "FriendMessage"
-	TempMessage   MessageRecvType = "TempMessage"
+	GroupMessage  MsgRecvType = "GroupMessage"
+	FriendMessage MsgRecvType = "FriendMessage"
+	TempMessage   MsgRecvType = "TempMessage"
 )
 
-type MessageRecv interface {
+type MsgRecv interface {
 	String() string
-	GetType() MessageRecvType
+	GetType() MsgRecvType
 }
 
-type MessageRecvBase struct {
-	Type MessageRecvType `json:"type"`
+type MsgRecvBase struct {
+	Type MsgRecvType `json:"type"`
 }
 
 type GroupMsg struct {
-	MessageRecvBase
-	MsgChain MsgChain `json:"messageChain"`
-	Sender   Member   `json:"sender"`
+	MsgRecvBase
+	MessageChain MsgChain `json:"messageChain"`
+	Sender       Member   `json:"sender"`
 }
 
 type FriendMsg struct {
-	MessageRecvBase
-	MsgChain MsgChain `json:"messageChain"`
-	Sender   User     `json:"sender"`
+	MsgRecvBase
+	MessageChain MsgChain `json:"messageChain"`
+	Sender       User     `json:"sender"`
 }
 
 type TempMsg struct {
-	MessageRecvBase
-	MsgChain MsgChain `json:"messageChain"`
-	Sender   Member   `json:"sender"`
+	MsgRecvBase
+	MessageChain MsgChain `json:"messageChain"`
+	Sender       Member   `json:"sender"`
 }
 
-func (m *MessageRecvBase) String() string {
+func (m *MsgRecvBase) String() string {
 	s, _ := json.MarshalToString(m)
 	return s
 }
 
-func (m *MessageRecvBase) GetType() MessageRecvType {
+func (m *MsgRecvBase) GetType() MsgRecvType {
 	return m.Type
 }
 
@@ -64,36 +64,141 @@ func (m *TempMsg) String() string {
 	return s
 }
 
-func DeserializeMessageRecv(rawjson []byte) (MessageRecv, error) {
-	var msgType MessageRecvBase
+func DeserializeMsgRecv(rawjson []byte) (MsgRecv, error) {
+	var msgType MsgRecvBase
 	err := json.Unmarshal(rawjson, &msgType)
 	if err != nil {
 		return nil, err
 	}
-
-	var mc MsgChain
-	var msg MessageRecv
-	mc, err = DeserializeMessageChain([]byte(json.Get(rawjson, "messageChain").ToString()))
-	if err != nil {
-		return nil, err
-	}
-
+	var msg MsgRecv
 	switch msgType.Type {
-	case FriendMessage:
-		var fm FriendMsg
-		fm.MsgChain = mc
-		err = json.Unmarshal(rawjson, &fm)
-		msg = &fm
-	case GroupMessage:
-		var fm GroupMsg
-		fm.MsgChain = mc
-		err = json.Unmarshal(rawjson, &fm)
-		msg = &fm
-	case TempMessage:
-		var fm GroupMsg
-		fm.MsgChain = mc
-		err = json.Unmarshal(rawjson, &fm)
-		msg = &fm
+	case FriendMessage, GroupMessage, TempMessage:
+		var mc MsgChain
+		mc, err = DeserializeMsgChain([]byte(json.Get(rawjson, "messageChain").ToString()))
+		if err != nil {
+			return nil, err
+		}
+		switch msgType.Type {
+		case FriendMessage:
+			var fm FriendMsg
+			fm.MessageChain = mc
+			err = json.Unmarshal(rawjson, &fm)
+			msg = &fm
+		case GroupMessage:
+			var fm GroupMsg
+			fm.MessageChain = mc
+			err = json.Unmarshal(rawjson, &fm)
+			msg = &fm
+		case TempMessage:
+			var fm GroupMsg
+			fm.MessageChain = mc
+			err = json.Unmarshal(rawjson, &fm)
+			msg = &fm
+		}
+	case BotOnlineEvent:
+		var e BotOnline
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case BotOfflineEventActive, BotOfflineEventForce, BotOfflineEventDropped:
+		var e BotOffline
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case BotReloginEvent:
+		var e BotRelogin
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case GroupRecallEvent:
+		var e GroupRecall
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case FriendRecallEvent:
+		var e FriendRecall
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case BotGroupPermissionChangeEvent:
+		var e BotGroupPermissionChange
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case BotMuteEvent:
+		var e BotMute
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case BotUnmuteEvent:
+		var e BotUnmute
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case BotJoinGroupEvent:
+		var e BotJoinGroup
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case BotLeaveEventActive, BotLeaveEventKick:
+		var e BotLeave
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case GroupNameChangeEvent:
+		var e GroupNameChange
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case GroupEntranceAnnouncementChangeEvent:
+		var e GroupEntranceAnnouncementChange
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case GroupMuteAllEvent:
+		var e GroupMuteAll
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case GroupAllowAnonymousChatEvent:
+		var e GroupAllowAnonymousChat
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case GroupAllowConfessTalkEvent:
+		var e GroupAllowConfessTalk
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case GroupAllowMemberInviteEvent:
+		var e GroupAllowMemberInvite
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case MemberJoinEvent:
+		var e MemberJoin
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case MemberLeaveEventKick, MemberLeaveEventQuit:
+		var e MemberLeave
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case MemberCardChangeEvent:
+		var e MemberCardChange
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case MemberSpecialTitleChangeEvent:
+		var e MemberSpecialTitleChange
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case MemberPermissionChangeEvent:
+		var e MemberPermissionChange
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case MemberMuteEvent:
+		var e MemberMute
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case MemberUnmuteEvent:
+		var e MemberUnmute
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case NewFriendRequestEvent:
+		var e NewFriendRequest
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case MemberJoinRequestEvent:
+		var e MemberJoinRequest
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
+	case BotInvitedJoinGroupRequestEvent:
+		var e BotInvitedJoinGroupRequest
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
 	default:
 		err = errors.New("unknown message receive type")
 	}

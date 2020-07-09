@@ -3,54 +3,41 @@ package mirai
 import (
 	"github.com/gorilla/websocket"
 	"github.com/wangnengjie/mirai-go/model"
+	"time"
 )
 
-func (b *Bot) messageLoop(c *websocket.Conn) {
-	for {
-		_, msgByte, err := c.ReadMessage()
-		if err != nil {
-			b.Log.Errorln(err)
-			return
-		}
-		go func() {
-			msg, err := model.DeserializeMessageRecv(msgByte)
+func (b *Bot) msgLoop(c *websocket.Conn) {
+	if c != nil {
+		for {
+			_, msgByte, err := c.ReadMessage()
 			if err != nil {
+				close(b.msgCh)
 				b.Log.Errorln(err)
 				return
 			}
+			go func() {
+				msg, err := model.DeserializeMsgRecv(msgByte)
+				b.Log.Debugln(msg)
+				if err != nil {
+					b.Log.Errorln(err)
+					return
+				}
+				b.msgCh <- msg
+			}()
+		}
+	} else {
+		for {
+			msg, err := b.FetchMessage(10)
 			b.Log.Debugln(msg)
-			handlers, ok := b.msgHandlers[msg.GetType()]
-			if !ok || len(handlers) == 0 {
-				return
-			}
-			for _, handler := range handlers {
-				handler(b, msg)
-			}
-		}()
-	}
-}
-
-func (b *Bot) eventLoop(c *websocket.Conn) {
-	for {
-		_, eventByte, err := c.ReadMessage()
-		if err != nil {
-			b.Log.Errorln(err)
-			return
-		}
-		go func() {
-			event, err := model.DeserializeEvent(eventByte)
 			if err != nil {
 				b.Log.Errorln(err)
-				return
 			}
-			b.Log.Debugln(event)
-			handlers, ok := b.eventHandlers[event.GetType()]
-			if !ok || len(handlers) == 0 {
-				return
+			for _, m := range msg {
+				b.msgCh <- m
 			}
-			for _, handler := range handlers {
-				handler(b, event)
+			if len(msg) < 10 {
+				time.Sleep(300 * time.Millisecond)
 			}
-		}()
+		}
 	}
 }

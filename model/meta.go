@@ -26,3 +26,17 @@ type Member struct {
 	Permission GroupPermission `json:"permission"`
 	Group      Group           `json:"group"`
 }
+
+type MemberInfo struct {
+	Name         string `json:"name,omitempty"`
+	SpecialTitle string `json:"specialTitle,omitempty"`
+}
+
+type GroupConfig struct {
+	Name              string `json:"name,omitempty"`
+	Announcement      string `json:"announcement,omitempty"`
+	ConfessTalk       *bool  `json:"confessTalk,omitempty"`
+	AllowMemberInvite *bool  `json:"allowMemberInvite,omitempty"`
+	AutoApprove       *bool  `json:"autoApprove,omitempty"`
+	AnonymousChat     *bool  `json:"anonymousChat,omitempty"`
+}

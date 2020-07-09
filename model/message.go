@@ -4,26 +4,26 @@ import (
 	"github.com/wangnengjie/mirai-go/util/json"
 )
 
-type MessageType string
-type MessageId int
+type MsgType string
+type MsgId int
 type PokeName string
 type QQId int64
 type GroupId int64
 
 const (
-	SourceMsg     MessageType = "Source"
-	QuoteMsg      MessageType = "Quote"
-	AtMsg         MessageType = "At"
-	AtAllMsg      MessageType = "AtAll"
-	FaceMsg       MessageType = "Face"
-	PlainMsg      MessageType = "Plain"
-	ImageMsg      MessageType = "Image"
-	FlashImageMsg MessageType = "FlashImage"
-	XmlMsg        MessageType = "Xml"
-	JsonMsg       MessageType = "Json"
-	AppMsg        MessageType = "App"
-	PokeMsg       MessageType = "Poke"
-	UnknownMsg    MessageType = "Unknown"
+	SourceMsg     MsgType = "Source"
+	QuoteMsg      MsgType = "Quote"
+	AtMsg         MsgType = "At"
+	AtAllMsg      MsgType = "AtAll"
+	FaceMsg       MsgType = "Face"
+	PlainMsg      MsgType = "Plain"
+	ImageMsg      MsgType = "Image"
+	FlashImageMsg MsgType = "FlashImage"
+	XmlMsg        MsgType = "Xml"
+	JsonMsg       MsgType = "Json"
+	AppMsg        MsgType = "App"
+	PokeMsg       MsgType = "Poke"
+	UnknownMsg    MsgType = "Unknown"
 )
 
 const (
@@ -35,90 +35,90 @@ const (
 	FANGDAZHAO  PokeName = "FangDaZhao"
 )
 
-type Message interface {
+type Msg interface {
 	String() string
-	GetType() MessageType
+	GetType() MsgType
 }
 
-type MessageBase struct {
-	Type MessageType `json:"type"`
+type MsgBase struct {
+	Type MsgType `json:"type"`
 }
 
 type Source struct {
-	MessageBase
-	Id   MessageId `json:"id"`
-	Time int       `json:"time"`
+	MsgBase
+	Id   MsgId `json:"id"`
+	Time int   `json:"time"`
 }
 
 type Quote struct {
-	MessageBase
-	Id       MessageId `json:"id"`
-	GroupId  GroupId   `json:"groupId"`
-	SenderId QQId      `json:"senderId"`
-	TargetId QQId      `json:"targetId"`
-	Origin   MsgChain  `json:"origin"`
+	MsgBase
+	Id       MsgId    `json:"id"`
+	GroupId  GroupId  `json:"groupId"`
+	SenderId QQId     `json:"senderId"`
+	TargetId QQId     `json:"targetId"`
+	Origin   MsgChain `json:"origin"`
 }
 
 type At struct {
-	MessageBase
+	MsgBase
 	Target  QQId   `json:"target"`
 	Display string `json:"display,omitempty"`
 }
 
 type AtAll struct {
-	MessageBase
+	MsgBase
 }
 
 type Face struct {
-	MessageBase
+	MsgBase
 	FaceId int    `json:"faceId,omitempty"`
 	Name   string `json:"name,omitempty"`
 }
 
 type Plain struct {
-	MessageBase
+	MsgBase
 	Text string `json:"text"`
 }
 
 type Image struct {
-	MessageBase
+	MsgBase
 	ImageId string `json:"imageId,omitempty"`
 	Url     string `json:"url,omitempty"`
 	Path    string `json:"path,omitempty"`
 }
 
 type FlashImage struct {
-	MessageBase
+	MsgBase
 	ImageId string `json:"imageId,omitempty"`
 	Url     string `json:"url,omitempty"`
 	Path    string `json:"path,omitempty"`
 }
 
 type Xml struct {
-	MessageBase
+	MsgBase
 	Xml string `json:"xml"`
 }
 
 type Json struct {
-	MessageBase
+	MsgBase
 	Json string `json:"json"`
 }
 
 type App struct {
-	MessageBase
+	MsgBase
 	Content string `json:"content"`
 }
 
 type Poke struct {
-	MessageBase
+	MsgBase
 	Name PokeName `json:"name"`
 }
 
-func (m *MessageBase) GetType() MessageType {
+func (m *MsgBase) GetType() MsgType {
 	return m.Type
 }
 
-func (m *MessageBase) String() string {
+func (m *MsgBase) String() string {
 	s, _ := json.MarshalToString(m)
 	return s
 }

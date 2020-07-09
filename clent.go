@@ -6,26 +6,21 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/wangnengjie/mirai-go/model"
-	"github.com/wangnengjie/mirai-go/util/json"
 	"net/url"
 	"strconv"
 	"sync"
 )
 
 type Client struct {
-	name        string
-	authKey     string
-	addr        url.URL
+	name    string
+	authKey string
+	addr    url.URL
+	bots    map[model.QQId]*Bot
+
 	RestyClient *resty.Client
 	Log         *logrus.Entry
-	bots        map[model.QQId]*Bot
 
 	debug bool
-}
-
-type AuthResp struct {
-	Code    int    `json:"code"`
-	Session string `json:"session"`
 }
 
 type DefaultResp struct {
@@ -39,9 +34,9 @@ func NewClient(name string, addr url.URL, authKey string) *Client {
 		name:        name,
 		authKey:     authKey,
 		addr:        addr,
+		bots:        make(map[model.QQId]*Bot),
 		RestyClient: resty.New(),
 		Log:         log.WithFields(logrus.Fields{"Client": name}),
-		bots:        make(map[model.QQId]*Bot),
 	}
 	c.RestyClient.SetHostURL(c.addr.String()).
 		SetHeader("Content-Type", "application/json;charset=utf8")
@@ -53,15 +48,14 @@ func (c *Client) Listen(debug bool) {
 	if debug {
 		c.Log.Logger.SetLevel(logrus.DebugLevel)
 	}
-
 	wg := sync.WaitGroup{}
 	for _, bot := range c.bots {
 		session, err := c.auth()
 		if err != nil {
 			c.Log.Fatalln(err)
 		}
-		bot.session = session
-		err = c.verify(bot, session)
+		bot.sessionKey = session
+		err = c.verify(bot.id, session)
 		if err != nil {
 			c.Log.Fatalln(err)
 		}
@@ -72,6 +66,7 @@ func (c *Client) Listen(debug bool) {
 		c.Log.Infof("Starting [Bot:%d] ...", bot.id)
 		go func(b *Bot) {
 			b.start()
+			_ = c.Release(b)
 			wg.Done()
 		}(bot)
 	}
@@ -79,44 +74,18 @@ func (c *Client) Listen(debug bool) {
 	c.Log.Infoln("Client exit.")
 }
 
-func (c *Client) auth() (string, error) {
-	resp, err := c.RestyClient.R().SetBody(map[string]interface{}{"authKey": c.authKey}).Post("/auth")
-	if err != nil {
-		return "", err
-	}
-	var r AuthResp
-	err = json.Unmarshal(resp.Body(), &r)
-	if err != nil {
-		return "", err
-	}
-	if r.Code == 1 {
-		return "", errors.New("错误的MIRAI API HTTP auth key")
-	}
-	return r.Session, nil
-}
-
-func (c *Client) verify(bot *Bot, session string) error {
-	resp, err := c.RestyClient.R().SetBody(map[string]interface{}{"sessionKey": session, "qq": bot.id}).Post("/verify")
-	if err != nil {
-		return err
-	}
-	var r DefaultResp
-	err = json.Unmarshal(resp.Body(), &r)
-	if err != nil {
-		return err
-	}
-	return respErrCode(r.Code)
-}
-
-func (c *Client) AddBot(id model.QQId) *Bot {
+func (c *Client) AddBot(id model.QQId, enableWebSocket bool) *Bot {
 	log := logrus.New()
 	c.bots[id] = &Bot{
-		id:            id,
-		Log:           log.WithFields(logrus.Fields{"Bot": id}),
-		Client:        c,
-		session:       "",
-		msgHandlers:   make(map[model.MessageRecvType][]func(*Bot, model.MessageRecv)),
-		eventHandlers: make(map[model.EventType][]func(*Bot, model.Event)),
+		Mu:              sync.RWMutex{},
+		id:              id,
+		Log:             log.WithFields(logrus.Fields{"Bot": id}),
+		Client:          c,
+		sessionKey:      "",
+		enableWebsocket: enableWebSocket,
+		msgCh:           make(chan model.MsgRecv, 10),
+		msgHandlers:     make(map[model.MsgRecvType][]func(*Bot, model.MsgRecv)),
+		Data:            make(map[interface{}]interface{}),
 	}
 	return c.bots[id]
 }
