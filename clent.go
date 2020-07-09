@@ -43,6 +43,9 @@ func NewClient(name string, addr url.URL, authKey string) *Client {
 	return c
 }
 
+//开始监听
+//
+//- debug 是否开启debug模式
 func (c *Client) Listen(debug bool) {
 	c.debug = debug
 	if debug {
@@ -74,18 +77,26 @@ func (c *Client) Listen(debug bool) {
 	c.Log.Infoln("Client exit.")
 }
 
-func (c *Client) AddBot(id model.QQId, enableWebSocket bool) *Bot {
+//添加bot
+//
+//- id QQ帐号
+//
+//- enableWebSocket 是否开启websocket
+//
+//- fetchMount http轮询模式下每次获取消息条数，启用websocket时无效
+func (c *Client) AddBot(id model.QQId, enableWebSocket bool, fetchMount uint) *Bot {
 	log := logrus.New()
 	c.bots[id] = &Bot{
 		Mu:              sync.RWMutex{},
 		id:              id,
-		Log:             log.WithFields(logrus.Fields{"Bot": id}),
-		Client:          c,
 		sessionKey:      "",
 		enableWebsocket: enableWebSocket,
+		fetchMount:      fetchMount,
+		Log:             log.WithFields(logrus.Fields{"Bot": id}),
+		Client:          c,
 		msgCh:           make(chan model.MsgRecv, 10),
 		msgHandlers:     make(map[model.MsgRecvType][]func(*Bot, model.MsgRecv)),
-		Data:            make(map[interface{}]interface{}),
+		Data:            make(map[string]interface{}),
 	}
 	return c.bots[id]
 }

@@ -27,7 +27,7 @@ func (b *Bot) msgLoop(c *websocket.Conn) {
 		}
 	} else {
 		for {
-			msg, err := b.FetchMessage(10)
+			msg, err := b.FetchMessage(int(b.fetchMount))
 			b.Log.Debugln(msg)
 			if err != nil {
 				b.Log.Errorln(err)
@@ -35,8 +35,8 @@ func (b *Bot) msgLoop(c *websocket.Conn) {
 			for _, m := range msg {
 				b.msgCh <- m
 			}
-			if len(msg) < 10 {
-				time.Sleep(300 * time.Millisecond)
+			if len(msg) < int(b.fetchMount) {
+				time.Sleep(100 * time.Millisecond)
 			}
 		}
 	}

@@ -8,15 +8,18 @@ import (
 )
 
 type Bot struct {
-	Mu              sync.RWMutex
+	Mu sync.RWMutex
+
 	id              model.QQId
-	Log             *logrus.Entry
-	Client          *Client
 	sessionKey      string
 	enableWebsocket bool
-	msgCh           chan model.MsgRecv
-	msgHandlers     map[model.MsgRecvType][]func(*Bot, model.MsgRecv)
-	Data            map[string]interface{} // 线程不安全，你可以在里面放置任何东西
+	fetchMount      uint // 使用轮询时每次fetch的信息条数
+	Log             *logrus.Entry
+	Client          *Client
+
+	msgCh       chan model.MsgRecv
+	msgHandlers map[model.MsgRecvType][]func(*Bot, model.MsgRecv)
+	Data        map[string]interface{} // 线程不安全，你可以在里面放置任何东西
 }
 
 func (b *Bot) start() {
