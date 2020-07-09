@@ -25,7 +25,7 @@ import (
 func main() { 
         // 填入该client名词，console端口，authkey
 	c := mirai.NewClient("client1", url.URL{Scheme: "http", Host: "127.0.0.1:8080"}, "12345678")
-	b := c.AddBot(1596773910, true, 0) // 填入qq号，是否开启websocket（强烈建议使用）
+	b := c.AddBot(1234567890, true, 0) // 填入qq号，是否开启websocket（强烈建议使用）
 	b.On(model.GroupMessage, repeat) // 消息监听
 	c.Listen(true) // 是否开启debug（提供调试信息，当前几乎莫得）
 }
@@ -47,6 +47,8 @@ func repeat(b *mirai.Bot, msg model.MsgRecv) {
 - [ ] 添加更多example
 - [ ] 添加更多调试信息（不清楚需要添加哪些，欢迎提建议）
 - [ ] 完善文档
+- [ ] 中间件功能
+- [ ] 拦截器功能
 - [ ] command接口
 - [ ] 测试（目前没有可供测试的条件，qq号申请越来越严了）
 - [ ] 性能优化？
