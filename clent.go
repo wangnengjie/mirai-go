@@ -94,6 +94,7 @@ func (c *Client) AddBot(id model.QQId, enableWebSocket bool, fetchMount uint) *B
 		fetchMount:      fetchMount,
 		Log:             log.WithFields(logrus.Fields{"Bot": id}),
 		Client:          c,
+		startHooks:      make([]func(*Bot), 0),
 		msgCh:           make(chan model.MsgRecv, 10),
 		msgHandlers:     make(map[model.MsgRecvType][]func(*Bot, model.MsgRecv)),
 		Data:            make(map[string]interface{}),

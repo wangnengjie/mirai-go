@@ -17,6 +17,7 @@ type Bot struct {
 	Log             *logrus.Entry
 	Client          *Client
 
+	startHooks  []func(*Bot)
 	msgCh       chan model.MsgRecv
 	msgHandlers map[model.MsgRecvType][]func(*Bot, model.MsgRecv)
 	Data        map[string]interface{} // 线程不安全，你可以在里面放置任何东西
@@ -41,8 +42,11 @@ func (b *Bot) start() {
 		}
 		defer c.Close()
 	}
-	b.Log.Infoln("Bot started successfully.")
 	go b.msgLoop(c)
+	b.Log.Infoln("Bot started successfully.")
+	for _, handler := range b.startHooks {
+		handler(b)
+	}
 	for msg := range b.msgCh {
 		handlers, ok := b.msgHandlers[msg.GetType()]
 		if ok && len(handlers) > 0 {
@@ -53,6 +57,12 @@ func (b *Bot) start() {
 	}
 }
 
+// 挂载消息和事件监听
 func (b *Bot) On(t model.MsgRecvType, handlers ...func(bot *Bot, msg model.MsgRecv)) {
 	b.msgHandlers[t] = append(b.msgHandlers[t], handlers...)
+}
+
+// bot启动后hook
+func (b *Bot) OnStart(handlers ...func(bot *Bot)) {
+	b.startHooks = append(b.startHooks, handlers...)
 }
