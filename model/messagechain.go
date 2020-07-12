@@ -61,9 +61,13 @@ func (mb *MCBuilder) Plain(text string) *MCBuilder {
 	return mb
 }
 
-// t can be "imageId" "url" "path"
+//t can be "imageId" "url" "path"
 //
-// imageId "{xxx}.(mirai)"; url "http(s)://xxx" ; path Relative to "plugins/MiraiAPIHTTP/images"
+//imageId "{xxx}.(mirai)"
+//
+//url "http(s)://xxx"
+//
+//path Relative to "plugins/MiraiAPIHTTP/images"
 func (mb *MCBuilder) Image(t string, v string) *MCBuilder {
 	m := &Image{}
 	m.Type = ImageMsg
