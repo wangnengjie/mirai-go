@@ -70,6 +70,7 @@ func (c *Client) Listen(debug bool) {
 		go func(b *Bot) {
 			b.start()
 			_ = c.Release(b)
+			c.bots[b.Id()] = nil
 			wg.Done()
 		}(bot)
 	}
@@ -84,13 +85,13 @@ func (c *Client) Listen(debug bool) {
 //- enableWebSocket 是否开启websocket
 //
 //- fetchMount http轮询模式下每次获取消息条数，启用websocket时无效
-func (c *Client) AddBot(id model.QQId, enableWebSocket bool, fetchMount uint) *Bot {
+func (c *Client) AddBot(id model.QQId, enableWebsocket bool, fetchMount uint) *Bot {
 	log := logrus.New()
 	c.bots[id] = &Bot{
 		Mu:              sync.RWMutex{},
 		id:              id,
 		sessionKey:      "",
-		enableWebsocket: enableWebSocket,
+		enableWebsocket: enableWebsocket,
 		fetchMount:      fetchMount,
 		Log:             log.WithFields(logrus.Fields{"Bot": id}),
 		Client:          c,

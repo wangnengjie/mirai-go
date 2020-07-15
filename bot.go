@@ -23,6 +23,10 @@ type Bot struct {
 	Data        map[string]interface{} // 线程不安全，你可以在里面放置任何东西
 }
 
+func (b *Bot) Id() model.QQId{
+	return b.id
+}
+
 func (b *Bot) start() {
 	err := b.SetConfig(0, b.enableWebsocket)
 	if err != nil {
