@@ -9,7 +9,9 @@
 
 ### 获取
 
-目前尚未发版
+```
+go get github.com/wangnengjie/mirai-go
+```
 
 ## Quick Start
 
