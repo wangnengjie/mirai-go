@@ -57,11 +57,11 @@ func (c *Client) Listen(debug bool) {
 		if err != nil {
 			c.Log.Fatalln(err)
 		}
-		bot.sessionKey = session
 		err = c.verify(bot.id, session)
 		if err != nil {
 			c.Log.Fatalln(err)
 		}
+		bot.SetSessionKey(session)
 		wg.Add(1)
 		if c.debug {
 			bot.Log.Logger.SetLevel(logrus.DebugLevel)
@@ -98,7 +98,7 @@ func (c *Client) AddBot(id model.QQId, enableWebsocket bool, fetchMount uint) *B
 		startHooks:      make([]func(*Bot), 0),
 		msgCh:           make(chan model.MsgRecv, 10),
 		msgHandlers:     make(map[model.MsgRecvType][]func(*Bot, model.MsgRecv)),
-		Data:            make(map[string]interface{}),
+		Data:            sync.Map{},
 	}
 	return c.bots[id]
 }

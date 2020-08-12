@@ -8,7 +8,7 @@ type Config struct {
 }
 
 func (b *Bot) GetConfig() (*Config, error) {
-	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.sessionKey).Get("/config")
+	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/config")
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +22,7 @@ func (b *Bot) GetConfig() (*Config, error) {
 
 func (b *Bot) SetConfig(cacheSize int, enableWebsocket bool) error {
 	body := map[string]interface{}{
-		"sessionKey":      b.sessionKey,
+		"sessionKey":      b.SessionKey(),
 		"enableWebsocket": enableWebsocket,
 	}
 	if cacheSize != 0 {

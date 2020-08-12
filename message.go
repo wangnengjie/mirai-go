@@ -40,7 +40,7 @@ type ImgUploadResp struct {
 
 func (b *Bot) sendMsg(qq model.QQId, group model.GroupId, mc model.MsgChain, quoteId model.MsgId, path string) (model.MsgId, error) {
 	body, err := json.Marshal(&SendMsgReq{
-		SessionKey:   b.sessionKey,
+		SessionKey:   b.SessionKey(),
 		MessageChain: mc,
 		QQ:           qq,
 		Group:        group,
@@ -83,7 +83,7 @@ func (b *Bot) SendTempMessage(qq model.QQId, group model.GroupId, mc model.MsgCh
 //当qq和group同时存在时，表示发送临时会话图片（默认为0）
 func (b *Bot) SendImageMessage(qq model.QQId, group model.GroupId, urls []string) ([]string, error) {
 	body, err := json.Marshal(&SendImgMsgReq{
-		SessionKey: b.sessionKey,
+		SessionKey: b.SessionKey(),
 		Urls:       urls,
 		QQ:         qq,
 		Group:      group,
@@ -112,7 +112,7 @@ func (b *Bot) UploadImage(t string, path string) (*ImgUploadResp, error) {
 		SetHeader("Content-Type", "multipart/form-data").
 		SetFile("img", path).
 		SetFormData(map[string]string{
-			"sessionKey": b.sessionKey,
+			"sessionKey": b.SessionKey(),
 			"type":       t,
 		}).Post("/uploadImage")
 	if err != nil {
@@ -129,7 +129,7 @@ func (b *Bot) UploadImage(t string, path string) (*ImgUploadResp, error) {
 //撤回指定消息。对于bot发送的消息，有2分钟时间限制。对于撤回群聊中群员的消息，需要有相应权限
 func (b *Bot) Recall(msgId model.MsgId) error {
 	body, err := json.Marshal(&RecallReq{
-		SessionKey: b.sessionKey,
+		SessionKey: b.SessionKey(),
 		Target:     msgId,
 	})
 	if err != nil {
@@ -152,7 +152,7 @@ func (b *Bot) getMsg(count int, path string) ([]model.MsgRecv, error) {
 		return nil, errors.New("count should be larger than 0")
 	}
 	resp, err := b.Client.RestyClient.R().SetQueryParams(map[string]string{
-		"sessionKey": b.sessionKey,
+		"sessionKey": b.SessionKey(),
 		"count":      strconv.Itoa(count),
 	}).Get(path)
 	if err != nil {
@@ -203,7 +203,7 @@ func (b *Bot) PeekLatestMessage(count int) ([]model.MsgRecv, error) {
 //通过messageId获取一条被缓存的消息。当该messageId没有被缓存或缓存失效时，返回code 5(指定对象不存在)
 func (b *Bot) MessageFromId(msgId model.MsgId) (model.MsgRecv, error) {
 	resp, err := b.Client.RestyClient.R().SetQueryParams(map[string]string{
-		"sessionKey": b.sessionKey,
+		"sessionKey": b.SessionKey(),
 		"id":         strconv.Itoa(int(msgId)),
 	}).Get("/messageFromId")
 	if err != nil {
@@ -218,7 +218,7 @@ func (b *Bot) MessageFromId(msgId model.MsgId) (model.MsgRecv, error) {
 
 //获取bot接收并缓存的消息总数，注意不包含被删除的
 func (b *Bot) CountMessage() (int, error) {
-	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.sessionKey).Get("/countMessage")
+	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/countMessage")
 	if err != nil {
 		return 0, err
 	}

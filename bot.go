@@ -20,11 +20,23 @@ type Bot struct {
 	startHooks  []func(*Bot)
 	msgCh       chan model.MsgRecv
 	msgHandlers map[model.MsgRecvType][]func(*Bot, model.MsgRecv)
-	Data        map[string]interface{} // 线程不安全，你可以在里面放置任何东西
+	Data        sync.Map // 线程不安全，你可以在里面放置任何东西
 }
 
 func (b *Bot) Id() model.QQId{
 	return b.id
+}
+
+func (b *Bot) SessionKey() string {
+	b.Mu.RLock()
+	defer b.Mu.RUnlock()
+	return b.sessionKey
+}
+
+func (b *Bot) SetSessionKey(sessionKey string) {
+	b.Mu.Lock()
+	b.sessionKey = sessionKey
+	b.Mu.Unlock()
 }
 
 func (b *Bot) start() {
@@ -38,7 +50,7 @@ func (b *Bot) start() {
 		addr := b.Client.addr
 		addr.Scheme = "ws"
 		addr.Path = "/all"
-		addr.RawQuery = "sessionKey=" + b.sessionKey
+		addr.RawQuery = "sessionKey=" + b.SessionKey()
 		c, _, err = websocket.DefaultDialer.Dial(addr.String(), nil)
 		if err != nil {
 			b.Log.Errorln(err)

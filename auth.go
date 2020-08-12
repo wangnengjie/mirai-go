@@ -46,6 +46,12 @@ func (c *Client) verify(qq model.QQId, session string) error {
 //
 //开启websocket后将不会自动释放，请务必定期释放
 func (c *Client) Release(bot *Bot) error {
+	bot.Mu.RLock()
+	defer bot.Mu.RUnlock()
+	return c.release(bot)
+}
+
+func (c *Client) release(bot *Bot) error {
 	resp, err := c.RestyClient.R().SetBody(map[string]interface{}{
 		"sessionKey": bot.sessionKey,
 		"qq":         bot.id,
@@ -59,4 +65,23 @@ func (c *Client) Release(bot *Bot) error {
 		return err
 	}
 	return respErrCode(r.Code)
+}
+
+func (c *Client) ReleaseAndReauth(bot *Bot) error {
+	session, err := c.auth()
+	if err != nil {
+		return err
+	}
+	bot.Mu.Lock()
+	err = c.release(bot)
+	if err != nil {
+		return err
+	}
+	err = c.verify(bot.Id(), session)
+	if err != nil {
+		return err
+	}
+	bot.sessionKey = session
+	bot.Mu.Unlock()
+	return nil
 }

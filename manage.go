@@ -55,7 +55,7 @@ type BotInvitedJoinGroupReply DefaultEventReply
 
 //获取bot的好友列表
 func (b *Bot) FriendList() ([]model.User, error) {
-	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.sessionKey).Get("/friendList")
+	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/friendList")
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (b *Bot) FriendList() ([]model.User, error) {
 
 //获取bot的群列表
 func (b *Bot) GroupList() ([]model.Group, error) {
-	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.sessionKey).Get("/groupList")
+	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/groupList")
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (b *Bot) GroupList() ([]model.Group, error) {
 
 //获取bot指定群种的成员列表
 func (b *Bot) MemberList() ([]model.Member, error) {
-	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.sessionKey).Get("/memberList")
+	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/memberList")
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (b *Bot) MemberList() ([]model.Member, error) {
 
 func (b *Bot) muteOrUnmute(group model.GroupId, qq model.QQId, time int, path string) error {
 	body, err := json.Marshal(&MuteOrUnmuteReq{
-		SessionKey: b.sessionKey,
+		SessionKey: b.SessionKey(),
 		Target:     group,
 		MemberId:   qq,
 		Time:       time,
@@ -140,7 +140,7 @@ func (b *Bot) Unmute(group model.GroupId, qq model.QQId) error {
 //移除指定群成员（需要有相关限权）
 func (b *Bot) Kick(group model.GroupId, qq model.QQId, msg string) error {
 	body, err := json.Marshal(&KickReq{
-		SessionKey: b.sessionKey,
+		SessionKey: b.SessionKey(),
 		Target:     group,
 		MemberId:   qq,
 		Msg:        msg,
@@ -163,7 +163,7 @@ func (b *Bot) Kick(group model.GroupId, qq model.QQId, msg string) error {
 //使Bot退出群聊
 func (b *Bot) Quit(group model.GroupId) error {
 	body, err := json.Marshal(&QuitReq{
-		SessionKey: b.sessionKey,
+		SessionKey: b.SessionKey(),
 		Target:     group,
 	})
 	if err != nil {
@@ -184,7 +184,7 @@ func (b *Bot) Quit(group model.GroupId) error {
 //修改群设置（需要有相关限权）
 func (b *Bot) SetGroupConfig(group model.GroupId, config model.GroupConfig) error {
 	body, err := json.Marshal(&SetGroupConfigReq{
-		SessionKey: b.sessionKey,
+		SessionKey: b.SessionKey(),
 		Target:     group,
 		Config:     config,
 	})
@@ -206,7 +206,7 @@ func (b *Bot) SetGroupConfig(group model.GroupId, config model.GroupConfig) erro
 //获取群设置
 func (b *Bot) GetGroupConfig(group model.GroupId) (*model.GroupConfig, error) {
 	resp, err := b.Client.RestyClient.R().SetQueryParams(map[string]string{
-		"sessionKey": b.sessionKey,
+		"sessionKey": b.SessionKey(),
 		"target":     strconv.FormatInt(int64(group), 10),
 	}).Get("/groupConfig")
 	if err != nil {
@@ -223,7 +223,7 @@ func (b *Bot) GetGroupConfig(group model.GroupId) (*model.GroupConfig, error) {
 //修改群员资料（需要有相关限权）
 func (b *Bot) SetMemberInfo(group model.GroupId, qq model.QQId, info model.MemberInfo) error {
 	body, err := json.Marshal(&SetMemberInfoReq{
-		SessionKey: b.sessionKey,
+		SessionKey: b.SessionKey(),
 		Target:     group,
 		MemberId:   qq,
 		Info:       info,
@@ -246,7 +246,7 @@ func (b *Bot) SetMemberInfo(group model.GroupId, qq model.QQId, info model.Membe
 //获取群员资料
 func (b *Bot) GetMemberInfo(group model.GroupId, qq model.QQId) (*model.MemberInfo, error) {
 	resp, err := b.Client.RestyClient.R().SetQueryParams(map[string]string{
-		"sessionKey": b.sessionKey,
+		"sessionKey": b.SessionKey(),
 		"target":     strconv.FormatInt(int64(group), 10),
 		"memberId":   strconv.FormatInt(int64(qq), 10),
 	}).Get("/memberInfo")
@@ -270,7 +270,7 @@ func (b *Bot) GetMemberInfo(group model.GroupId, qq model.QQId) (*model.MemberIn
 //2 拒绝添加好友并添加黑名单，不再接收该用户的好友申请
 func (b *Bot) NewFriendReply(operate int, msg string, req *model.NewFriendRequest) error {
 	body, err := json.Marshal(&NewFriendReply{
-		SessionKey: b.sessionKey,
+		SessionKey: b.SessionKey(),
 		EventId:    req.EventId,
 		FromId:     req.FromId,
 		GroupId:    req.GroupId,
@@ -305,7 +305,7 @@ func (b *Bot) NewFriendReply(operate int, msg string, req *model.NewFriendReques
 //4 忽略入群并添加黑名单，不再接收该用户的入群申请
 func (b *Bot) MemberJoinReply(operate int, msg string, req *model.MemberJoinRequest) error {
 	body, err := json.Marshal(&MemberJoinReply{
-		SessionKey: b.sessionKey,
+		SessionKey: b.SessionKey(),
 		EventId:    req.EventId,
 		FromId:     req.FromId,
 		GroupId:    req.GroupId,
@@ -334,7 +334,7 @@ func (b *Bot) MemberJoinReply(operate int, msg string, req *model.MemberJoinRequ
 //1 拒绝邀请
 func (b *Bot) BotInvitedJoinGroupReply(operate int, msg string, req *model.BotInvitedJoinGroupRequest) error {
 	body, err := json.Marshal(&BotInvitedJoinGroupReply{
-		SessionKey: b.sessionKey,
+		SessionKey: b.SessionKey(),
 		EventId:    req.EventId,
 		FromId:     req.FromId,
 		GroupId:    req.GroupId,

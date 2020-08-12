@@ -34,9 +34,7 @@ func replyFriendList(b *mirai.Bot, m model.MsgRecv) {
 		}
 	}
 	if atMe && strings.Contains(str, "好友列表") {
-		b.Mu.RLock()
-		friendList := b.Data["friendList"].([]model.User)
-		b.Mu.RUnlock()
+		friendList, _ := b.Data.Load("friendList")
 		s, err := json.Json.MarshalIndent(friendList, "", "    ")
 		if err != nil {
 			b.Log.Errorln(err)
@@ -54,9 +52,7 @@ func getFriendList(b *mirai.Bot) {
 		b.Log.Errorln(err)
 	} else {
 		b.Log.Debugln(list)
-		//b.Mu.Lock()
-		b.Data["friendList"] = list
-		//b.Mu.Unlock()
+		b.Data.Store("friendList", list)
 	}
 }
 
@@ -65,8 +61,6 @@ func getGroupList(b *mirai.Bot) {
 		b.Log.Errorln(err)
 	} else {
 		b.Log.Debugln(list)
-		//b.Mu.Lock()
-		b.Data["groupList"] = list
-		//b.Mu.Unlock()
+		b.Data.Store("groupList", list)
 	}
 }
