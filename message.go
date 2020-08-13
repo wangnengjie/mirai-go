@@ -209,7 +209,12 @@ func (b *Bot) MessageFromId(msgId model.MsgId) (model.MsgRecv, error) {
 	if err != nil {
 		return nil, err
 	}
-	msg, err := model.DeserializeMsgRecv(resp.Body())
+	code := json.Get(resp.Body(), "code").ToInt()
+	err = respErrCode(code)
+	if err != nil {
+		return nil, err
+	}
+	msg, err := model.DeserializeMsgRecv([]byte(json.Get(resp.Body(), "data").ToString()))
 	if err != nil {
 		return nil, err
 	}
