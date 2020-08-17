@@ -18,27 +18,29 @@ type MsgRecv interface {
 	GetType() MsgRecvType
 }
 
-type MsgRecvBase struct {
-	Type MsgRecvType `json:"type"`
-}
+type (
+	MsgRecvBase struct {
+		Type MsgRecvType `json:"type"`
+	}
 
-type GroupMsg struct {
-	MsgRecvBase
-	MessageChain MsgChain `json:"messageChain"`
-	Sender       Member   `json:"sender"`
-}
+	GroupMsg struct {
+		MsgRecvBase
+		MessageChain MsgChain `json:"messageChain"`
+		Sender       Member   `json:"sender"`
+	}
 
-type FriendMsg struct {
-	MsgRecvBase
-	MessageChain MsgChain `json:"messageChain"`
-	Sender       User     `json:"sender"`
-}
+	FriendMsg struct {
+		MsgRecvBase
+		MessageChain MsgChain `json:"messageChain"`
+		Sender       User     `json:"sender"`
+	}
 
-type TempMsg struct {
-	MsgRecvBase
-	MessageChain MsgChain `json:"messageChain"`
-	Sender       Member   `json:"sender"`
-}
+	TempMsg struct {
+		MsgRecvBase
+		MessageChain MsgChain `json:"messageChain"`
+		Sender       Member   `json:"sender"`
+	}
+)
 
 func (m *MsgRecvBase) String() string {
 	s, _ := json.MarshalToString(m)
