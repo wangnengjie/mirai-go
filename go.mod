@@ -3,6 +3,7 @@ module github.com/wangnengjie/mirai-go
 go 1.14
 
 require (
+	github.com/antonfisher/nested-logrus-formatter v1.1.0
 	github.com/go-resty/resty/v2 v2.3.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/json-iterator/go v1.1.10
