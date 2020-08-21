@@ -1,7 +1,6 @@
 package model
 
 import (
-	"errors"
 	"github.com/wangnengjie/mirai-go/util/json"
 )
 
@@ -202,7 +201,9 @@ func DeserializeMsgRecv(rawjson []byte) (MsgRecv, error) {
 		err = json.Unmarshal(rawjson, &e)
 		msg = &e
 	default:
-		err = errors.New("unknown message receive type")
+		var e MsgRecvBase
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
 	}
 	if err != nil {
 		return nil, err

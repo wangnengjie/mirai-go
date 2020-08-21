@@ -23,7 +23,6 @@ const (
 	JsonMsg       MsgType = "Json"
 	AppMsg        MsgType = "App"
 	PokeMsg       MsgType = "Poke"
-	UnknownMsg    MsgType = "Unknown"
 )
 
 const (

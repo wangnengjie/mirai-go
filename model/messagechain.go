@@ -171,7 +171,7 @@ func DeserializeMsgChain(rawjson []byte) (MsgChain, error) {
 				return mc, err
 			}
 			mc = append(mc, &Quote{Origin: subMc})
-		case UnknownMsg:
+		default:
 			mc = append(mc, &MsgBase{})
 		}
 	}
