@@ -5,8 +5,6 @@
 
 ~~只是个玩具啦~~
 
-~~目前基于`mirai`的相当一部分工具都处于不稳定状态，大规模使用或者商业使用建议使用[coolq](https://cqp.cc/)~~
-
 ### 获取
 
 ```
@@ -21,29 +19,35 @@ package main
 import (
 	"github.com/wangnengjie/mirai-go"
 	"github.com/wangnengjie/mirai-go/model"
-	"net/url"
 )
 
 func main() {
-	c := mirai.NewClient("client1", url.URL{Scheme: "http", Host: "127.0.0.1:8080"}, "12345678")
-	// 使用c.Log.Logger.SetOutput()可定向client log输出
-	// c.RestyClient可以设置请求的各项内容，hostUrl已被设定为第二个参数的内容
-	b := c.AddBot(123456789, true, 0)
-	// 使用b.Log.Logger.SetOutput()可定向bot log输出
-	b.On(model.GroupMessage, repeat)
-	c.Listen(true)
+	bot := mirai.NewBot(mirai.BotConfig{
+		Host:      "127.0.0.1:8080",
+		AuthKey:   "12345678",
+		Id:        123456789,
+		Websocket: true,
+		RecvMode:  mirai.RecvAll,
+		Debug:     true,
+	})
+	err := bot.Connect()
+	if err != nil {
+		bot.Log.Error(err)
+	}
+	bot.On(model.GroupMessage, repeat)
+	bot.Loop()
 }
 
-func repeat(b *mirai.Bot, msg model.MsgRecv) { // 复读群消息
-	m, _ := msg.(*model.GroupMsg)
+func repeat(ctx *mirai.Context) { // 复读群消息
+	m, _ := ctx.Message.(*model.GroupMsg)
 	// 0 代表不回复消息，msgId是发出的消息的id
 	// chain中第一位为source
-	msgId, err := b.SendGroupMessage(m.Sender.Group.Id, m.MessageChain[1:], 0)
+	msgId, err := ctx.Bot.SendGroupMessage(m.Sender.Group.Id, m.MessageChain[1:], 0)
 	// msgId 是刚刚发送的这条消息的id
 	if err != nil {
-		b.Log.Errorln(err)
+		ctx.Bot.Log.Error(err)
 	} else {
-		b.Log.Debugln(msgId)
+		ctx.Bot.Log.Info(msgId)
 	}
 }
 
@@ -51,23 +55,23 @@ func repeat(b *mirai.Bot, msg model.MsgRecv) { // 复读群消息
 
 ## Todos
 
-- [ ] 添加更多example
+- [x] 添加更多example
 - [ ] 添加更多调试信息（不清楚需要添加哪些，欢迎提建议）
 - [ ] 完善文档
-- [ ] 中间件功能
-- [ ] 拦截器功能
+- [x] 中间件功能
 - [ ] command接口
-- [ ] 测试（目前没有可供测试的条件，qq号申请越来越严了）
+- [ ] 测试
 - [ ] 性能优化？
 
 go语言刚入门菜鸡，项目可能会出现各种问题，欢迎提issue
 
 ## 依赖
 
-- [resty](https://github.com/go-resty/resty)：Simple HTTP and REST client library for Go
-- [websocket](https://github.com/gorilla/websocket)：A fast, well-tested and widely used WebSocket implementation for Go
-- [jsoniter](https://github.com/json-iterator/go)：A high-performance 100% compatible drop-in replacement of "encoding/json"
-- [logrus](https://github.com/sirupsen/logrus)：Structured, pluggable logging for Go
+- [resty](https://github.com/go-resty/resty): Simple HTTP and REST client library for Go
+- [websocket](https://github.com/gorilla/websocket): A fast, well-tested and widely used WebSocket implementation for Go
+- [jsoniter](https://github.com/json-iterator/go): A high-performance 100% compatible drop-in replacement of "encoding/json"
+- [logrus](https://github.com/sirupsen/logrus): Structured, pluggable logging for Go
+- [nested-logrus-formatter](https://github.com/antonfisher/nested-logrus-formatter): Formatter for logrus
 
 ## 鸣谢
 
