@@ -3,6 +3,7 @@ package mirai
 import (
 	"errors"
 	"github.com/wangnengjie/mirai-go/model"
+	"github.com/wangnengjie/mirai-go/util"
 	"github.com/wangnengjie/mirai-go/util/json"
 	"strconv"
 )
@@ -49,7 +50,7 @@ func (b *Bot) sendMsg(qq model.QQId, group model.GroupId, mc model.MsgChain, quo
 	if err != nil {
 		return 0, err
 	}
-	resp, err := b.Client.RestyClient.R().SetBody(body).Post(path)
+	resp, err := b.httpClient.R().SetBody(body).Post(path)
 	if err != nil {
 		return 0, err
 	}
@@ -58,7 +59,7 @@ func (b *Bot) sendMsg(qq model.QQId, group model.GroupId, mc model.MsgChain, quo
 	if err != nil {
 		return 0, err
 	}
-	return r.MessageId, respErrCode(r.Code)
+	return r.MessageId, util.RespErrCode(r.Code)
 }
 
 //向指定群发送消息，quoteId不为0时使用回复
@@ -91,7 +92,7 @@ func (b *Bot) SendImageMessage(qq model.QQId, group model.GroupId, urls []string
 	if err != nil {
 		return nil, err
 	}
-	resp, err := b.Client.RestyClient.R().SetBody(body).Post("/sendImageMessage")
+	resp, err := b.httpClient.R().SetBody(body).Post("/sendImageMessage")
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +109,7 @@ func (b *Bot) UploadImage(t string, path string) (*ImgUploadResp, error) {
 	if t != "friend" && t != "group" && t != "temp" {
 		return nil, errors.New("type should be friend, group or temp")
 	}
-	resp, err := b.Client.RestyClient.R().
+	resp, err := b.httpClient.R().
 		SetHeader("Content-Type", "multipart/form-data").
 		SetFile("img", path).
 		SetFormData(map[string]string{
@@ -135,7 +136,7 @@ func (b *Bot) Recall(msgId model.MsgId) error {
 	if err != nil {
 		return err
 	}
-	resp, err := b.Client.RestyClient.R().SetBody(body).Post("/sendImageMessage")
+	resp, err := b.httpClient.R().SetBody(body).Post("/sendImageMessage")
 	if err != nil {
 		return err
 	}
@@ -144,14 +145,14 @@ func (b *Bot) Recall(msgId model.MsgId) error {
 	if err != nil {
 		return err
 	}
-	return respErrCode(r.Code)
+	return util.RespErrCode(r.Code)
 }
 
 func (b *Bot) getMsg(count int, path string) ([]model.MsgRecv, error) {
 	if count < 0 {
 		return nil, errors.New("count should be larger than 0")
 	}
-	resp, err := b.Client.RestyClient.R().SetQueryParams(map[string]string{
+	resp, err := b.httpClient.R().SetQueryParams(map[string]string{
 		"sessionKey": b.SessionKey(),
 		"count":      strconv.Itoa(count),
 	}).Get(path)
@@ -159,7 +160,7 @@ func (b *Bot) getMsg(count int, path string) ([]model.MsgRecv, error) {
 		return nil, err
 	}
 	code := json.Get(resp.Body(), "code").ToInt()
-	err = respErrCode(code)
+	err = util.RespErrCode(code)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +203,7 @@ func (b *Bot) PeekLatestMessage(count int) ([]model.MsgRecv, error) {
 
 //通过messageId获取一条被缓存的消息。当该messageId没有被缓存或缓存失效时，返回code 5(指定对象不存在)
 func (b *Bot) MessageFromId(msgId model.MsgId) (model.MsgRecv, error) {
-	resp, err := b.Client.RestyClient.R().SetQueryParams(map[string]string{
+	resp, err := b.httpClient.R().SetQueryParams(map[string]string{
 		"sessionKey": b.SessionKey(),
 		"id":         strconv.Itoa(int(msgId)),
 	}).Get("/messageFromId")
@@ -210,7 +211,7 @@ func (b *Bot) MessageFromId(msgId model.MsgId) (model.MsgRecv, error) {
 		return nil, err
 	}
 	code := json.Get(resp.Body(), "code").ToInt()
-	err = respErrCode(code)
+	err = util.RespErrCode(code)
 	if err != nil {
 		return nil, err
 	}
@@ -223,11 +224,11 @@ func (b *Bot) MessageFromId(msgId model.MsgId) (model.MsgRecv, error) {
 
 //获取bot接收并缓存的消息总数，注意不包含被删除的
 func (b *Bot) CountMessage() (int, error) {
-	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/countMessage")
+	resp, err := b.httpClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/countMessage")
 	if err != nil {
 		return 0, err
 	}
 	code := json.Get(resp.Body(), "code").ToInt()
 	data := json.Get(resp.Body(), "data").ToInt()
-	return data, respErrCode(code)
+	return data, util.RespErrCode(code)
 }

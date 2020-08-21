@@ -39,198 +39,200 @@ const (
 	BotInvitedJoinGroupRequestEvent      MsgRecvType = "BotInvitedJoinGroupRequestEvent"      //Bot被邀请入群申请
 )
 
-type BotOnline struct {
-	MsgRecvBase
-	QQ QQId `json:"qq"`
-}
+type (
+	BotOnline struct {
+		MsgRecvBase
+		QQ QQId `json:"qq"`
+	}
 
-type BotOffline struct {
-	MsgRecvBase
-	QQ QQId `json:"qq"`
-}
+	BotOffline struct {
+		MsgRecvBase
+		QQ QQId `json:"qq"`
+	}
 
-type BotRelogin struct {
-	MsgRecvBase
-	QQ QQId `json:"qq"`
-}
+	BotRelogin struct {
+		MsgRecvBase
+		QQ QQId `json:"qq"`
+	}
 
-type GroupRecall struct {
-	MsgRecvBase
-	AuthorId  QQId   `json:"authorId"`
-	MessageId MsgId  `json:"messageId"`
-	Time      int    `json:"time"`
-	Group     Group  `json:"group"`
-	Operator  Member `json:"operator"`
-}
+	GroupRecall struct {
+		MsgRecvBase
+		AuthorId  QQId   `json:"authorId"`
+		MessageId MsgId  `json:"messageId"`
+		Time      int    `json:"time"`
+		Group     Group  `json:"group"`
+		Operator  Member `json:"operator"`
+	}
 
-type FriendRecall struct {
-	MsgRecvBase
-	AuthorId  QQId  `json:"authorId"`
-	MessageId MsgId `json:"messageId"`
-	Time      int   `json:"time"`
-	Operator  QQId  `json:"operator"`
-}
+	FriendRecall struct {
+		MsgRecvBase
+		AuthorId  QQId  `json:"authorId"`
+		MessageId MsgId `json:"messageId"`
+		Time      int   `json:"time"`
+		Operator  QQId  `json:"operator"`
+	}
 
-type BotGroupPermissionChange struct {
-	MsgRecvBase
-	Origin  GroupPermission `json:"origin"`
-	New     GroupPermission `json:"new"`
-	Current GroupPermission `json:"current"`
-	Group   Group           `json:"group"`
-}
+	BotGroupPermissionChange struct {
+		MsgRecvBase
+		Origin  GroupPermission `json:"origin"`
+		New     GroupPermission `json:"new"`
+		Current GroupPermission `json:"current"`
+		Group   Group           `json:"group"`
+	}
 
-type BotMute struct {
-	MsgRecvBase
-	DurationSeconds int    `json:"durationSeconds"`
-	Operator        Member `json:"operator"`
-}
+	BotMute struct {
+		MsgRecvBase
+		DurationSeconds int    `json:"durationSeconds"`
+		Operator        Member `json:"operator"`
+	}
 
-type BotUnmute struct {
-	MsgRecvBase
-	Operator Member `json:"operator"`
-}
+	BotUnmute struct {
+		MsgRecvBase
+		Operator Member `json:"operator"`
+	}
 
-type BotJoinGroup struct {
-	MsgRecvBase
-	Group Group `json:"group"`
-}
+	BotJoinGroup struct {
+		MsgRecvBase
+		Group Group `json:"group"`
+	}
 
-type BotLeave struct {
-	MsgRecvBase
-	Group Group `json:"group"`
-}
+	BotLeave struct {
+		MsgRecvBase
+		Group Group `json:"group"`
+	}
 
-type GroupNameChange struct {
-	MsgRecvBase
-	Origin   string `json:"origin"`
-	New      string `json:"new"`
-	Current  string `json:"current"`
-	Group    Group  `json:"group"`
-	Operator Member `json:"operator"`
-}
+	GroupNameChange struct {
+		MsgRecvBase
+		Origin   string `json:"origin"`
+		New      string `json:"new"`
+		Current  string `json:"current"`
+		Group    Group  `json:"group"`
+		Operator Member `json:"operator"`
+	}
 
-type GroupEntranceAnnouncementChange struct {
-	MsgRecvBase
-	Origin   string `json:"origin"`
-	New      string `json:"new"`
-	Current  string `json:"current"`
-	Group    Group  `json:"group"`
-	Operator Member `json:"operator"`
-}
+	GroupEntranceAnnouncementChange struct {
+		MsgRecvBase
+		Origin   string `json:"origin"`
+		New      string `json:"new"`
+		Current  string `json:"current"`
+		Group    Group  `json:"group"`
+		Operator Member `json:"operator"`
+	}
 
-type GroupMuteAll struct {
-	MsgRecvBase
-	Origin   bool   `json:"origin"`
-	New      bool   `json:"new"`
-	Current  bool   `json:"current"`
-	Group    Group  `json:"group"`
-	Operator Member `json:"operator"`
-}
+	GroupMuteAll struct {
+		MsgRecvBase
+		Origin   bool   `json:"origin"`
+		New      bool   `json:"new"`
+		Current  bool   `json:"current"`
+		Group    Group  `json:"group"`
+		Operator Member `json:"operator"`
+	}
 
-type GroupAllowAnonymousChat struct {
-	MsgRecvBase
-	Origin   bool   `json:"origin"`
-	New      bool   `json:"new"`
-	Current  bool   `json:"current"`
-	Group    Group  `json:"group"`
-	Operator Member `json:"operator"`
-}
+	GroupAllowAnonymousChat struct {
+		MsgRecvBase
+		Origin   bool   `json:"origin"`
+		New      bool   `json:"new"`
+		Current  bool   `json:"current"`
+		Group    Group  `json:"group"`
+		Operator Member `json:"operator"`
+	}
 
-type GroupAllowConfessTalk struct {
-	MsgRecvBase
-	Origin  bool  `json:"origin"`
-	New     bool  `json:"new"`
-	Current bool  `json:"current"`
-	Group   Group `json:"group"`
-	IsByBot bool  `json:"isByBot"`
-}
+	GroupAllowConfessTalk struct {
+		MsgRecvBase
+		Origin  bool  `json:"origin"`
+		New     bool  `json:"new"`
+		Current bool  `json:"current"`
+		Group   Group `json:"group"`
+		IsByBot bool  `json:"isByBot"`
+	}
 
-type GroupAllowMemberInvite struct {
-	MsgRecvBase
-	Origin   bool   `json:"origin"`
-	New      bool   `json:"new"`
-	Current  bool   `json:"current"`
-	Group    Group  `json:"group"`
-	Operator Member `json:"operator"`
-}
+	GroupAllowMemberInvite struct {
+		MsgRecvBase
+		Origin   bool   `json:"origin"`
+		New      bool   `json:"new"`
+		Current  bool   `json:"current"`
+		Group    Group  `json:"group"`
+		Operator Member `json:"operator"`
+	}
 
-type MemberJoin struct {
-	MsgRecvBase
-	Member Member `json:"member"`
-}
+	MemberJoin struct {
+		MsgRecvBase
+		Member Member `json:"member"`
+	}
 
-type MemberLeave struct {
-	MsgRecvBase
-	Member   Member `json:"member"`
-	Operator Member `json:"operator,omitempty"`
-}
+	MemberLeave struct {
+		MsgRecvBase
+		Member   Member `json:"member"`
+		Operator Member `json:"operator,omitempty"`
+	}
 
-type MemberCardChange struct {
-	MsgRecvBase
-	Origin   string `json:"origin"`
-	New      string `json:"new"`
-	Current  string `json:"current"`
-	Member   Member `json:"member"`
-	Operator Member `json:"operator"`
-}
+	MemberCardChange struct {
+		MsgRecvBase
+		Origin   string `json:"origin"`
+		New      string `json:"new"`
+		Current  string `json:"current"`
+		Member   Member `json:"member"`
+		Operator Member `json:"operator"`
+	}
 
-type MemberSpecialTitleChange struct {
-	MsgRecvBase
-	Origin  string `json:"origin"`
-	New     string `json:"new"`
-	Current string `json:"current"`
-	Member  Member `json:"member"`
-}
+	MemberSpecialTitleChange struct {
+		MsgRecvBase
+		Origin  string `json:"origin"`
+		New     string `json:"new"`
+		Current string `json:"current"`
+		Member  Member `json:"member"`
+	}
 
-type MemberPermissionChange struct {
-	MsgRecvBase
-	Origin  GroupPermission `json:"origin"`
-	New     GroupPermission `json:"new"`
-	Current GroupPermission `json:"current"`
-	Member  Member          `json:"member"`
-}
+	MemberPermissionChange struct {
+		MsgRecvBase
+		Origin  GroupPermission `json:"origin"`
+		New     GroupPermission `json:"new"`
+		Current GroupPermission `json:"current"`
+		Member  Member          `json:"member"`
+	}
 
-type MemberMute struct {
-	MsgRecvBase
-	DurationSeconds int    `json:"durationSeconds"`
-	Member          Member `json:"member"`
-	Operator        Member `json:"operator"`
-}
+	MemberMute struct {
+		MsgRecvBase
+		DurationSeconds int    `json:"durationSeconds"`
+		Member          Member `json:"member"`
+		Operator        Member `json:"operator"`
+	}
 
-type MemberUnmute struct {
-	MsgRecvBase
-	Member   Member `json:"member"`
-	Operator Member `json:"operator"`
-}
+	MemberUnmute struct {
+		MsgRecvBase
+		Member   Member `json:"member"`
+		Operator Member `json:"operator"`
+	}
 
-type NewFriendRequest struct {
-	MsgRecvBase
-	EventId EventId `json:"eventId"`
-	FromId  QQId    `json:"fromId"`
-	GroupId GroupId `json:"groupId"`
-	Nick    string  `json:"nick"`
-	Message string  `json:"message"`
-}
+	NewFriendRequest struct {
+		MsgRecvBase
+		EventId EventId `json:"eventId"`
+		FromId  QQId    `json:"fromId"`
+		GroupId GroupId `json:"groupId"`
+		Nick    string  `json:"nick"`
+		Message string  `json:"message"`
+	}
 
-type MemberJoinRequest struct {
-	MsgRecvBase
-	EventId   EventId `json:"eventId"`
-	FromId    QQId    `json:"fromId"`
-	GroupId   GroupId `json:"groupId"`
-	GroupName string  `json:"groupName"`
-	Nick      string  `json:"nick"`
-	Message   string  `json:"message"`
-}
+	MemberJoinRequest struct {
+		MsgRecvBase
+		EventId   EventId `json:"eventId"`
+		FromId    QQId    `json:"fromId"`
+		GroupId   GroupId `json:"groupId"`
+		GroupName string  `json:"groupName"`
+		Nick      string  `json:"nick"`
+		Message   string  `json:"message"`
+	}
 
-type BotInvitedJoinGroupRequest struct {
-	MsgRecvBase
-	EventId   EventId `json:"eventId"`
-	FromId    QQId    `json:"fromId"`
-	GroupId   GroupId `json:"groupId"`
-	GroupName string  `json:"groupName"`
-	Nick      string  `json:"nick"`
-	Message   string  `json:"message"`
-}
+	BotInvitedJoinGroupRequest struct {
+		MsgRecvBase
+		EventId   EventId `json:"eventId"`
+		FromId    QQId    `json:"fromId"`
+		GroupId   GroupId `json:"groupId"`
+		GroupName string  `json:"groupName"`
+		Nick      string  `json:"nick"`
+		Message   string  `json:"message"`
+	}
+)
 
 func (e *BotOnline) String() string {
 	s, _ := json.MarshalToString(e)

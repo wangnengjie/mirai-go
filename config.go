@@ -1,6 +1,9 @@
 package mirai
 
-import "github.com/wangnengjie/mirai-go/util/json"
+import (
+	"github.com/wangnengjie/mirai-go/util"
+	"github.com/wangnengjie/mirai-go/util/json"
+)
 
 type Config struct {
 	CacheSize       int  `json:"cacheSize"`
@@ -8,7 +11,7 @@ type Config struct {
 }
 
 func (b *Bot) GetConfig() (*Config, error) {
-	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/config")
+	resp, err := b.httpClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/config")
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +31,7 @@ func (b *Bot) SetConfig(cacheSize int, enableWebsocket bool) error {
 	if cacheSize != 0 {
 		body["cacheSize"] = cacheSize
 	}
-	resp, err := b.Client.RestyClient.R().SetBody(body).Post("/config")
+	resp, err := b.httpClient.R().SetBody(body).Post("/config")
 	if err != nil {
 		return err
 	}
@@ -37,5 +40,5 @@ func (b *Bot) SetConfig(cacheSize int, enableWebsocket bool) error {
 	if err != nil {
 		return err
 	}
-	return respErrCode(r.Code)
+	return util.RespErrCode(r.Code)
 }

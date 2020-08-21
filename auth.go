@@ -2,17 +2,22 @@ package mirai
 
 import (
 	"errors"
-	"github.com/wangnengjie/mirai-go/model"
+	"github.com/wangnengjie/mirai-go/util"
 	"github.com/wangnengjie/mirai-go/util/json"
 )
+
+type DefaultResp struct {
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+}
 
 type AuthResp struct {
 	Code    int    `json:"code"`
 	Session string `json:"session"`
 }
 
-func (c *Client) auth() (string, error) {
-	resp, err := c.RestyClient.R().SetBody(map[string]interface{}{"authKey": c.authKey}).Post("/auth")
+func (b *Bot) Auth() (string, error) {
+	resp, err := b.httpClient.R().SetBody(map[string]interface{}{"authKey": b.config.AuthKey}).Post("/auth")
 	if err != nil {
 		return "", err
 	}
@@ -22,13 +27,13 @@ func (c *Client) auth() (string, error) {
 		return "", err
 	}
 	if r.Code == 1 {
-		return "", errors.New("错误的MIRAI API HTTP auth key")
+		return "", errors.New("错误的MIRAI API HTTP Auth key")
 	}
 	return r.Session, nil
 }
 
-func (c *Client) verify(qq model.QQId, session string) error {
-	resp, err := c.RestyClient.R().SetBody(map[string]interface{}{"sessionKey": session, "qq": qq}).Post("/verify")
+func (b *Bot) Verify(session string) error {
+	resp, err := b.httpClient.R().SetBody(map[string]interface{}{"sessionKey": session, "qq": b.Id()}).Post("/verify")
 	if err != nil {
 		return err
 	}
@@ -37,7 +42,7 @@ func (c *Client) verify(qq model.QQId, session string) error {
 	if err != nil {
 		return err
 	}
-	return respErrCode(r.Code)
+	return util.RespErrCode(r.Code)
 }
 
 //使用此方式释放session及其相关资源（Bot不会被释放）,不使用的Session应当被释放
@@ -45,16 +50,16 @@ func (c *Client) verify(qq model.QQId, session string) error {
 //长时间（30分钟）未使用的Session将自动释放，否则Session持续保存Bot收到的消息，将会导致内存泄露
 //
 //开启websocket后将不会自动释放，请务必定期释放
-func (c *Client) Release(bot *Bot) error {
-	bot.Mu.RLock()
-	defer bot.Mu.RUnlock()
-	return c.release(bot)
+func (b *Bot) Release() error {
+	b.Mu.RLock()
+	defer b.Mu.RUnlock()
+	return b.release()
 }
 
-func (c *Client) release(bot *Bot) error {
-	resp, err := c.RestyClient.R().SetBody(map[string]interface{}{
-		"sessionKey": bot.sessionKey,
-		"qq":         bot.id,
+func (b *Bot) release() error {
+	resp, err := b.httpClient.R().SetBody(map[string]interface{}{
+		"sessionKey": b.sessionKey,
+		"qq":         b.Id(),
 	}).Post("/release")
 	if err != nil {
 		return err
@@ -64,24 +69,24 @@ func (c *Client) release(bot *Bot) error {
 	if err != nil {
 		return err
 	}
-	return respErrCode(r.Code)
+	return util.RespErrCode(r.Code)
 }
 
-func (c *Client) ReleaseAndReauth(bot *Bot) error {
-	session, err := c.auth()
+func (b *Bot) ReleaseAndReauth() error {
+	session, err := b.Auth()
 	if err != nil {
 		return err
 	}
-	bot.Mu.Lock()
-	err = c.release(bot)
+	b.Mu.Lock()
+	err = b.release()
 	if err != nil {
 		return err
 	}
-	err = c.verify(bot.Id(), session)
+	err = b.Verify(session)
 	if err != nil {
 		return err
 	}
-	bot.sessionKey = session
-	bot.Mu.Unlock()
+	b.sessionKey = session
+	b.Mu.Unlock()
 	return nil
 }

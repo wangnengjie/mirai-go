@@ -23,7 +23,6 @@ const (
 	JsonMsg       MsgType = "Json"
 	AppMsg        MsgType = "App"
 	PokeMsg       MsgType = "Poke"
-	UnknownMsg    MsgType = "Unknown"
 )
 
 const (
@@ -40,79 +39,81 @@ type Msg interface {
 	GetType() MsgType
 }
 
-type MsgBase struct {
-	Type MsgType `json:"type"`
-}
+type (
+	MsgBase struct {
+		Type MsgType `json:"type"`
+	}
 
-type Source struct {
-	MsgBase
-	Id   MsgId `json:"id"`
-	Time int   `json:"time"`
-}
+	Source struct {
+		MsgBase
+		Id   MsgId `json:"id"`
+		Time int   `json:"time"`
+	}
 
-type Quote struct {
-	MsgBase
-	Id       MsgId    `json:"id"`
-	GroupId  GroupId  `json:"groupId"`
-	SenderId QQId     `json:"senderId"`
-	TargetId QQId     `json:"targetId"`
-	Origin   MsgChain `json:"origin"`
-}
+	Quote struct {
+		MsgBase
+		Id       MsgId    `json:"id"`
+		GroupId  GroupId  `json:"groupId"`
+		SenderId QQId     `json:"senderId"`
+		TargetId QQId     `json:"targetId"`
+		Origin   MsgChain `json:"origin"`
+	}
 
-type At struct {
-	MsgBase
-	Target  QQId   `json:"target"`
-	Display string `json:"display,omitempty"`
-}
+	At struct {
+		MsgBase
+		Target  QQId   `json:"target"`
+		Display string `json:"display,omitempty"`
+	}
 
-type AtAll struct {
-	MsgBase
-}
+	AtAll struct {
+		MsgBase
+	}
 
-type Face struct {
-	MsgBase
-	FaceId int    `json:"faceId,omitempty"`
-	Name   string `json:"name,omitempty"`
-}
+	Face struct {
+		MsgBase
+		FaceId int    `json:"faceId,omitempty"`
+		Name   string `json:"name,omitempty"`
+	}
 
-type Plain struct {
-	MsgBase
-	Text string `json:"text"`
-}
+	Plain struct {
+		MsgBase
+		Text string `json:"text"`
+	}
 
-type Image struct {
-	MsgBase
-	ImageId string `json:"imageId,omitempty"`
-	Url     string `json:"url,omitempty"`
-	Path    string `json:"path,omitempty"`
-}
+	Image struct {
+		MsgBase
+		ImageId string `json:"imageId,omitempty"`
+		Url     string `json:"url,omitempty"`
+		Path    string `json:"path,omitempty"`
+	}
 
-type FlashImage struct {
-	MsgBase
-	ImageId string `json:"imageId,omitempty"`
-	Url     string `json:"url,omitempty"`
-	Path    string `json:"path,omitempty"`
-}
+	FlashImage struct {
+		MsgBase
+		ImageId string `json:"imageId,omitempty"`
+		Url     string `json:"url,omitempty"`
+		Path    string `json:"path,omitempty"`
+	}
 
-type Xml struct {
-	MsgBase
-	Xml string `json:"xml"`
-}
+	Xml struct {
+		MsgBase
+		Xml string `json:"xml"`
+	}
 
-type Json struct {
-	MsgBase
-	Json string `json:"json"`
-}
+	Json struct {
+		MsgBase
+		Json string `json:"json"`
+	}
 
-type App struct {
-	MsgBase
-	Content string `json:"content"`
-}
+	App struct {
+		MsgBase
+		Content string `json:"content"`
+	}
 
-type Poke struct {
-	MsgBase
-	Name PokeName `json:"name"`
-}
+	Poke struct {
+		MsgBase
+		Name PokeName `json:"name"`
+	}
+)
 
 func (m *MsgBase) GetType() MsgType {
 	return m.Type

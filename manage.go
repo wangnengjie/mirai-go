@@ -2,6 +2,7 @@ package mirai
 
 import (
 	"github.com/wangnengjie/mirai-go/model"
+	"github.com/wangnengjie/mirai-go/util"
 	"github.com/wangnengjie/mirai-go/util/json"
 	"strconv"
 )
@@ -55,7 +56,7 @@ type BotInvitedJoinGroupReply DefaultEventReply
 
 //获取bot的好友列表
 func (b *Bot) FriendList() ([]model.User, error) {
-	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/friendList")
+	resp, err := b.httpClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/friendList")
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +70,7 @@ func (b *Bot) FriendList() ([]model.User, error) {
 
 //获取bot的群列表
 func (b *Bot) GroupList() ([]model.Group, error) {
-	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/groupList")
+	resp, err := b.httpClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/groupList")
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (b *Bot) GroupList() ([]model.Group, error) {
 
 //获取bot指定群种的成员列表
 func (b *Bot) MemberList() ([]model.Member, error) {
-	resp, err := b.Client.RestyClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/memberList")
+	resp, err := b.httpClient.R().SetQueryParam("sessionKey", b.SessionKey()).Get("/memberList")
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +106,7 @@ func (b *Bot) muteOrUnmute(group model.GroupId, qq model.QQId, time int, path st
 	if err != nil {
 		return err
 	}
-	resp, err := b.Client.RestyClient.R().SetBody(body).Post(path)
+	resp, err := b.httpClient.R().SetBody(body).Post(path)
 	if err != nil {
 		return err
 	}
@@ -114,7 +115,7 @@ func (b *Bot) muteOrUnmute(group model.GroupId, qq model.QQId, time int, path st
 	if err != nil {
 		return err
 	}
-	return respErrCode(r.Code)
+	return util.RespErrCode(r.Code)
 }
 
 //令指定群进行全体禁言（需要有相关限权）
@@ -148,7 +149,7 @@ func (b *Bot) Kick(group model.GroupId, qq model.QQId, msg string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := b.Client.RestyClient.R().SetBody(body).Post("/kick")
+	resp, err := b.httpClient.R().SetBody(body).Post("/kick")
 	if err != nil {
 		return err
 	}
@@ -157,7 +158,7 @@ func (b *Bot) Kick(group model.GroupId, qq model.QQId, msg string) error {
 	if err != nil {
 		return err
 	}
-	return respErrCode(r.Code)
+	return util.RespErrCode(r.Code)
 }
 
 //使Bot退出群聊
@@ -169,7 +170,7 @@ func (b *Bot) Quit(group model.GroupId) error {
 	if err != nil {
 		return err
 	}
-	resp, err := b.Client.RestyClient.R().SetBody(body).Post("/quit")
+	resp, err := b.httpClient.R().SetBody(body).Post("/quit")
 	if err != nil {
 		return err
 	}
@@ -178,7 +179,7 @@ func (b *Bot) Quit(group model.GroupId) error {
 	if err != nil {
 		return err
 	}
-	return respErrCode(r.Code)
+	return util.RespErrCode(r.Code)
 }
 
 //修改群设置（需要有相关限权）
@@ -191,7 +192,7 @@ func (b *Bot) SetGroupConfig(group model.GroupId, config model.GroupConfig) erro
 	if err != nil {
 		return err
 	}
-	resp, err := b.Client.RestyClient.R().SetBody(body).Post("/groupConfig")
+	resp, err := b.httpClient.R().SetBody(body).Post("/groupConfig")
 	if err != nil {
 		return err
 	}
@@ -200,12 +201,12 @@ func (b *Bot) SetGroupConfig(group model.GroupId, config model.GroupConfig) erro
 	if err != nil {
 		return err
 	}
-	return respErrCode(r.Code)
+	return util.RespErrCode(r.Code)
 }
 
 //获取群设置
 func (b *Bot) GetGroupConfig(group model.GroupId) (*model.GroupConfig, error) {
-	resp, err := b.Client.RestyClient.R().SetQueryParams(map[string]string{
+	resp, err := b.httpClient.R().SetQueryParams(map[string]string{
 		"sessionKey": b.SessionKey(),
 		"target":     strconv.FormatInt(int64(group), 10),
 	}).Get("/groupConfig")
@@ -231,7 +232,7 @@ func (b *Bot) SetMemberInfo(group model.GroupId, qq model.QQId, info model.Membe
 	if err != nil {
 		return err
 	}
-	resp, err := b.Client.RestyClient.R().SetBody(body).Post("/memberInfo")
+	resp, err := b.httpClient.R().SetBody(body).Post("/memberInfo")
 	if err != nil {
 		return err
 	}
@@ -240,12 +241,12 @@ func (b *Bot) SetMemberInfo(group model.GroupId, qq model.QQId, info model.Membe
 	if err != nil {
 		return err
 	}
-	return respErrCode(r.Code)
+	return util.RespErrCode(r.Code)
 }
 
 //获取群员资料
 func (b *Bot) GetMemberInfo(group model.GroupId, qq model.QQId) (*model.MemberInfo, error) {
-	resp, err := b.Client.RestyClient.R().SetQueryParams(map[string]string{
+	resp, err := b.httpClient.R().SetQueryParams(map[string]string{
 		"sessionKey": b.SessionKey(),
 		"target":     strconv.FormatInt(int64(group), 10),
 		"memberId":   strconv.FormatInt(int64(qq), 10),
@@ -280,7 +281,7 @@ func (b *Bot) NewFriendReply(operate int, msg string, req *model.NewFriendReques
 	if err != nil {
 		return err
 	}
-	resp, err := b.Client.RestyClient.R().SetBody(body).Post("/resp/newFriendRequestEvent")
+	resp, err := b.httpClient.R().SetBody(body).Post("/resp/newFriendRequestEvent")
 	if err != nil {
 		return err
 	}
@@ -289,7 +290,7 @@ func (b *Bot) NewFriendReply(operate int, msg string, req *model.NewFriendReques
 	if err != nil {
 		return err
 	}
-	return respErrCode(r.Code)
+	return util.RespErrCode(r.Code)
 }
 
 //响应用户入群申请（Bot需要有管理员权限）
@@ -315,7 +316,7 @@ func (b *Bot) MemberJoinReply(operate int, msg string, req *model.MemberJoinRequ
 	if err != nil {
 		return err
 	}
-	resp, err := b.Client.RestyClient.R().SetBody(body).Post("/resp/memberJoinRequestEvent")
+	resp, err := b.httpClient.R().SetBody(body).Post("/resp/memberJoinRequestEvent")
 	if err != nil {
 		return err
 	}
@@ -324,7 +325,7 @@ func (b *Bot) MemberJoinReply(operate int, msg string, req *model.MemberJoinRequ
 	if err != nil {
 		return err
 	}
-	return respErrCode(r.Code)
+	return util.RespErrCode(r.Code)
 }
 
 //响应Bot被邀请入群
@@ -344,7 +345,7 @@ func (b *Bot) BotInvitedJoinGroupReply(operate int, msg string, req *model.BotIn
 	if err != nil {
 		return err
 	}
-	resp, err := b.Client.RestyClient.R().SetBody(body).Post("/resp/botInvitedJoinGroupRequestEvent")
+	resp, err := b.httpClient.R().SetBody(body).Post("/resp/botInvitedJoinGroupRequestEvent")
 	if err != nil {
 		return err
 	}
@@ -353,5 +354,5 @@ func (b *Bot) BotInvitedJoinGroupReply(operate int, msg string, req *model.BotIn
 	if err != nil {
 		return err
 	}
-	return respErrCode(r.Code)
+	return util.RespErrCode(r.Code)
 }

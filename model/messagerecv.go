@@ -1,7 +1,6 @@
 package model
 
 import (
-	"errors"
 	"github.com/wangnengjie/mirai-go/util/json"
 )
 
@@ -18,27 +17,29 @@ type MsgRecv interface {
 	GetType() MsgRecvType
 }
 
-type MsgRecvBase struct {
-	Type MsgRecvType `json:"type"`
-}
+type (
+	MsgRecvBase struct {
+		Type MsgRecvType `json:"type"`
+	}
 
-type GroupMsg struct {
-	MsgRecvBase
-	MessageChain MsgChain `json:"messageChain"`
-	Sender       Member   `json:"sender"`
-}
+	GroupMsg struct {
+		MsgRecvBase
+		MessageChain MsgChain `json:"messageChain"`
+		Sender       Member   `json:"sender"`
+	}
 
-type FriendMsg struct {
-	MsgRecvBase
-	MessageChain MsgChain `json:"messageChain"`
-	Sender       User     `json:"sender"`
-}
+	FriendMsg struct {
+		MsgRecvBase
+		MessageChain MsgChain `json:"messageChain"`
+		Sender       User     `json:"sender"`
+	}
 
-type TempMsg struct {
-	MsgRecvBase
-	MessageChain MsgChain `json:"messageChain"`
-	Sender       Member   `json:"sender"`
-}
+	TempMsg struct {
+		MsgRecvBase
+		MessageChain MsgChain `json:"messageChain"`
+		Sender       Member   `json:"sender"`
+	}
+)
 
 func (m *MsgRecvBase) String() string {
 	s, _ := json.MarshalToString(m)
@@ -200,7 +201,9 @@ func DeserializeMsgRecv(rawjson []byte) (MsgRecv, error) {
 		err = json.Unmarshal(rawjson, &e)
 		msg = &e
 	default:
-		err = errors.New("unknown message receive type")
+		var e MsgRecvBase
+		err = json.Unmarshal(rawjson, &e)
+		msg = &e
 	}
 	if err != nil {
 		return nil, err
