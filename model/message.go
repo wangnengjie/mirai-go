@@ -19,6 +19,7 @@ const (
 	PlainMsg      MsgType = "Plain"
 	ImageMsg      MsgType = "Image"
 	FlashImageMsg MsgType = "FlashImage"
+	VoiceMsg      MsgType = "Voice"
 	XmlMsg        MsgType = "Xml"
 	JsonMsg       MsgType = "Json"
 	AppMsg        MsgType = "App"
@@ -94,6 +95,13 @@ type (
 		Path    string `json:"path,omitempty"`
 	}
 
+	Voice struct {
+		MsgBase
+		VoiceId string `json:"voiceId"`
+		Url     string `json:"url"`
+		Path    string `json:"path"`
+	}
+
 	Xml struct {
 		MsgBase
 		Xml string `json:"xml"`
@@ -160,6 +168,11 @@ func (m *Image) String() string {
 }
 
 func (m *FlashImage) String() string {
+	s, _ := json.MarshalToString(m)
+	return s
+}
+
+func (m *Voice) String() string {
 	s, _ := json.MarshalToString(m)
 	return s
 }

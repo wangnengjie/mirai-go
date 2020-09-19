@@ -39,6 +39,12 @@ type ImgUploadResp struct {
 	Path    string `json:"path"`
 }
 
+type VoiceUploadResp struct {
+	VoiceId string `json:"voiceId"`
+	Url     string `json:"url"`
+	Path    string `json:"path"`
+}
+
 func (b *Bot) sendMsg(qq model.QQId, group model.GroupId, mc model.MsgChain, quoteId model.MsgId, path string) (model.MsgId, error) {
 	body, err := json.Marshal(&SendMsgReq{
 		SessionKey:   b.SessionKey(),
@@ -120,6 +126,28 @@ func (b *Bot) UploadImage(t string, path string) (*ImgUploadResp, error) {
 		return nil, err
 	}
 	var r ImgUploadResp
+	err = json.Unmarshal(resp.Body(), &r)
+	if err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+func (b *Bot) UploadVoice(t string, path string) (*VoiceUploadResp, error) {
+	if t != "group" {
+		return nil, errors.New("currently, type only support group")
+	}
+	resp, err := b.httpClient.R().
+		SetHeader("Content-Type", "multipart/form-data").
+		SetFile("voice", path).
+		SetFormData(map[string]string{
+			"sessionKey": b.SessionKey(),
+			"type":       t,
+		}).Post("/uploadVoice")
+	if err != nil {
+		return nil, err
+	}
+	var r VoiceUploadResp
 	err = json.Unmarshal(resp.Body(), &r)
 	if err != nil {
 		return nil, err

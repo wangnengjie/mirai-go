@@ -98,6 +98,21 @@ func (mb *MCBuilder) FlashImage(t string, v string) *MCBuilder {
 	return mb
 }
 
+func (mb *MCBuilder) Voice(t string, v string) *MCBuilder {
+	m := &Voice{}
+	m.Type = VoiceMsg
+	switch t {
+	case "voiceId":
+		m.VoiceId = v
+	case "url":
+		m.Url = v
+	case "path":
+		m.Path = v
+	}
+	mb.mc = append(mb.mc, m)
+	return mb
+}
+
 func (mb *MCBuilder) Xml(xml string) *MCBuilder {
 	mb.mc = append(mb.mc, &Xml{
 		MsgBase: MsgBase{XmlMsg},
@@ -157,6 +172,8 @@ func DeserializeMsgChain(rawjson []byte) (MsgChain, error) {
 			mc = append(mc, &Image{})
 		case FlashImageMsg:
 			mc = append(mc, &FlashImage{})
+		case VoiceMsg:
+			mc = append(mc, &Voice{})
 		case XmlMsg:
 			mc = append(mc, &Xml{})
 		case JsonMsg:
