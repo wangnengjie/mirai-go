@@ -24,7 +24,7 @@ type HandlerFunc func(ctx *Context)
 type HandlersChan []HandlerFunc
 
 type BotConfig struct {
-	Host    string // http://Host[:Port?]
+	Host    string // http://[Host]
 	AuthKey string // authkey for remote mirai client
 
 	Id         model.QQId
@@ -67,11 +67,11 @@ func NewBot(config BotConfig) *Bot {
 		SetLogger(bot.Log)
 
 	bot.httpClient.OnBeforeRequest(func(c *resty.Client, req *resty.Request) error {
-		bot.Log.Debugf("%s: %s", req.Method, req.URL)
+		bot.Log.Tracef("%s: %s", req.Method, req.URL)
 		return nil
 	})
 	bot.httpClient.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {
-		bot.Log.Debugf("Response: %s", resp.Status())
+		bot.Log.Tracef("Response: %s From: %s", resp.Status(), resp.Request.URL)
 		if !resp.IsSuccess() {
 			return errors.New("Request to " + resp.Request.URL + " failed")
 		}
@@ -97,6 +97,10 @@ func NewBot(config BotConfig) *Bot {
 
 func (b *Bot) Id() model.QQId {
 	return b.config.Id
+}
+
+func (b *Bot) HttpClient() *resty.Client {
+	return b.httpClient
 }
 
 func (b *Bot) SessionKey() string {
